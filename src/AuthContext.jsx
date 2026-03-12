@@ -27,13 +27,16 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     const data = await api.login(email, password);
-    setToken(data.access_token);
+    // Backend returns { user: {...}, tokens: {...} }
+    const token = data.tokens?.access_token || data.access_token;
+    if (!token) throw new Error('No access token in response');
+    setToken(token);
     const userData = {
-      id: data.user_id,
-      email: data.email,
-      name: data.name || email.split('@')[0],
-      organization_id: data.organization_id,
-      role: data.role,
+      id: data.user?.id || data.user_id,
+      email: data.user?.email || data.email || email,
+      name: data.user?.display_name || data.name || email.split('@')[0],
+      organization_id: data.user?.organization_id || data.organization_id,
+      role: data.user?.role || data.role,
     };
     setUser(userData);
     setUserState(userData);
@@ -42,13 +45,16 @@ export function AuthProvider({ children }) {
 
   const register = async (formData) => {
     const data = await api.register(formData);
-    setToken(data.access_token);
+    // Backend returns { user: {...}, organization: {...}, tokens: {...} }
+    const token = data.tokens?.access_token || data.access_token;
+    if (!token) throw new Error('No access token in response');
+    setToken(token);
     const userData = {
-      id: data.user_id,
-      email: formData.email,
-      name: formData.name || formData.email.split('@')[0],
-      organization_id: data.organization_id,
-      role: 'admin',
+      id: data.user?.id || data.user_id,
+      email: data.user?.email || formData.email,
+      name: data.user?.display_name || formData.display_name || formData.email.split('@')[0],
+      organization_id: data.user?.organization_id || data.organization?.id || data.organization_id,
+      role: data.user?.role || 'admin',
     };
     setUser(userData);
     setUserState(userData);
