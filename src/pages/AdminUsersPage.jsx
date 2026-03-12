@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import api from '../api';
 import { useAuth } from '../AuthContext';
+import PageHeader from '../components/PageHeader';
+import EmptyState from '../components/EmptyState';
 
 const ROLES = [
   { value: 'admin', label: 'Администратор', color: 'badge-error' },
@@ -85,15 +87,15 @@ export default function AdminUsersPage() {
 
   return (
     <div>
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <h1 className="page-title">Пользователи</h1>
-          <p className="page-subtitle">Управление доступом и ролями</p>
-        </div>
+      <PageHeader
+        title="Пользователи"
+        subtitle="Управление доступом и ролями"
+        breadcrumbs={[{ label: 'Управление', href: '#' }, { label: 'Пользователи' }]}
+      >
         <button className="btn btn-primary" onClick={() => setShowInvite(!showInvite)}>
           ➕ Пригласить
         </button>
-      </div>
+      </PageHeader>
 
       {/* Invite modal */}
       {showInvite && (
@@ -151,11 +153,7 @@ export default function AdminUsersPage() {
       {/* Users table */}
       <div className="card">
         {filtered.length === 0 ? (
-          <div className="empty-state" style={{ padding: '32px 0' }}>
-            <div className="empty-icon">👥</div>
-            <div className="empty-title">Нет пользователей</div>
-            <div className="empty-desc">Пригласите коллег для совместной работы</div>
-          </div>
+          <EmptyState icon="👥" title="Нет пользователей" description="Пригласите коллег для совместной работы" />
         ) : (
           <div className="table-wrapper">
             <table className="table">
