@@ -10,6 +10,7 @@ import AdminUsersPage from './pages/AdminUsersPage';
 import AdminBillingPage from './pages/AdminBillingPage';
 import AdminAnalyticsPage from './pages/AdminAnalyticsPage';
 import AdminSettingsPage from './pages/AdminSettingsPage';
+import PlatformOverviewPage from './pages/PlatformOverviewPage';
 import './index.css';
 
 function ProtectedRoute({ children }) {
@@ -43,6 +44,7 @@ function AppRoutes() {
       {/* App (protected, with sidebar) */}
       <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/admin/platform" element={<PlatformOverviewPage />} />
         <Route path="/admin/users" element={<AdminUsersPage />} />
         <Route path="/admin/billing" element={<AdminBillingPage />} />
         <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />

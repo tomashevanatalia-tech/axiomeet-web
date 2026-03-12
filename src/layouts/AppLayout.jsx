@@ -8,6 +8,7 @@ const NAV_ITEMS = {
     { to: '/onboarding', icon: '🚀', label: 'Onboarding' },
   ],
   admin: [
+    { to: '/admin/platform', icon: '🖥️', label: 'Platform' },
     { to: '/admin/users', icon: '👥', label: 'Пользователи' },
     { to: '/admin/billing', icon: '💳', label: 'Тарифы и Биллинг' },
     { to: '/admin/analytics', icon: '📈', label: 'Аналитика' },

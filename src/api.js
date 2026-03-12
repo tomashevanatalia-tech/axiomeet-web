@@ -109,6 +109,20 @@ const api = {
   getYandexStatus: (orgId) => request('GET', `/oauth/yandex/status?org_id=${orgId}`),
   disconnectZoom: (orgId) => request('POST', '/oauth/zoom/disconnect', { org_id: orgId }),
   disconnectYandex: (orgId) => request('POST', '/oauth/yandex/disconnect', { org_id: orgId }),
+
+  // Admin — Platform
+  getPlatformStatus: () => {
+    const url = `${API_BASE}/api/admin/platform-status`;
+    const headers = { 'Content-Type': 'application/json', 'X-Admin-Key': 'axiomeet-admin-2024' };
+    const token = getToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return fetch(url, { headers }).then(r => r.json());
+  },
+  getAdminOrganizations: () => {
+    const url = `${API_BASE}/api/admin/organizations`;
+    const headers = { 'Content-Type': 'application/json', 'X-Admin-Key': 'axiomeet-admin-2024' };
+    return fetch(url, { headers }).then(r => r.json());
+  },
 };
 
 export { api, ApiError, getToken, setToken, clearToken, getUser, setUser };

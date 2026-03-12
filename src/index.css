@@ -1526,3 +1526,195 @@ a:hover {
 .dash-error h3 { color: var(--color-text); font-size: 1.1rem; }
 .dash-error p { color: var(--color-text-muted); font-size: 0.85rem; }
 
+/* ═══════════════════════════════════════════════════════════════
+   Platform Overview — Infrastructure Admin
+   ═══════════════════════════════════════════════════════════════ */
+
+.platform-page {
+  padding: 0 var(--space-xl) var(--space-2xl);
+  max-width: 1280px;
+  animation: fadeIn 0.5s ease;
+}
+
+.plat-section { margin-bottom: var(--space-xl); }
+
+.plat-section-title {
+  font-size: 1rem; font-weight: 700;
+  display: flex; align-items: center; gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  color: var(--color-text);
+}
+
+/* Metric cards (reuse stat-card style) */
+.plat-metric {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  position: relative; overflow: hidden;
+  transition: all 200ms ease;
+}
+
+.plat-metric::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--mc, #6366f1);
+}
+
+.plat-metric:hover {
+  border-color: rgba(99,102,241,0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.plat-metric-icon {
+  width: 40px; height: 40px;
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: var(--space-sm);
+}
+
+.plat-metric-val {
+  font-size: 1.75rem; font-weight: 800;
+  letter-spacing: -0.03em; line-height: 1;
+}
+
+.plat-metric-label {
+  font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 4px;
+}
+
+/* Service Cards Grid */
+.plat-svc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-md);
+}
+
+.plat-svc-grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 700px) {
+  .plat-svc-grid, .plat-svc-grid-2 { grid-template-columns: 1fr; }
+}
+
+.plat-svc-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md) var(--space-lg);
+  transition: all 200ms ease;
+}
+
+.plat-svc-card:hover {
+  border-color: rgba(99,102,241,0.3);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+}
+
+.plat-svc-top {
+  display: flex; align-items: center; gap: var(--space-sm);
+}
+
+.plat-svc-icon {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.plat-svc-info { flex: 1; min-width: 0; }
+.plat-svc-name { font-size: 0.85rem; font-weight: 600; }
+.plat-svc-purpose { font-size: 0.7rem; color: var(--color-text-muted); margin-top: 1px; }
+
+.plat-svc-detail {
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1px solid rgba(63,63,70,0.3);
+  display: flex; align-items: center; gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.plat-svc-key {
+  font-size: 0.7rem; color: var(--color-text-muted);
+}
+
+.plat-svc-key code {
+  background: rgba(99,102,241,0.08);
+  padding: 1px 6px; border-radius: 4px;
+  font-size: 0.68rem; color: var(--color-text-secondary);
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.plat-webhook-badge {
+  font-size: 0.65rem; font-weight: 600;
+  background: rgba(34,197,94,0.12); color: #22c55e;
+  padding: 2px 6px; border-radius: 999px;
+}
+
+.plat-svc-actions {
+  margin-top: var(--space-sm);
+  display: flex; gap: var(--space-sm);
+}
+
+.plat-link {
+  font-size: 0.72rem; font-weight: 500;
+  color: var(--color-primary-400);
+  text-decoration: none;
+  display: flex; align-items: center; gap: 3px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(99,102,241,0.15);
+  transition: all 150ms ease;
+}
+
+.plat-link:hover {
+  background: rgba(99,102,241,0.08);
+  border-color: rgba(99,102,241,0.3);
+  color: var(--color-primary-300);
+}
+
+/* Status Badges */
+.plat-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.68rem; font-weight: 600;
+  padding: 3px 8px; border-radius: 999px;
+  white-space: nowrap;
+}
+
+.status-ok { background: rgba(34,197,94,0.12); color: #22c55e; }
+.status-warn { background: rgba(245,158,11,0.12); color: #f59e0b; }
+.status-err { background: rgba(239,68,68,0.12); color: #ef4444; }
+
+/* Infrastructure Grid */
+.plat-infra-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-sm);
+}
+
+.plat-infra-card {
+  display: flex; align-items: center; gap: var(--space-sm);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  transition: all 150ms ease;
+  color: var(--color-text-secondary);
+}
+
+.plat-infra-card:hover {
+  border-color: rgba(99,102,241,0.2);
+  background: rgba(99,102,241,0.03);
+}
+
+.plat-infra-info { flex: 1; min-width: 0; }
+.plat-infra-name { font-size: 0.8rem; font-weight: 600; color: var(--color-text); display: block; }
+
+.plat-infra-url {
+  font-size: 0.68rem; color: var(--color-primary-400);
+  text-decoration: none;
+}
+
+.plat-infra-url:hover { text-decoration: underline; }
+
