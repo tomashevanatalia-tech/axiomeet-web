@@ -8,9 +8,10 @@ ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
 RUN npm run build
 
-# Stage 2: Serve with nginx
+# Stage 2: Serve with nginx (Railway uses dynamic PORT)
 FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 EXPOSE 80
+# nginx:alpine auto-processes /etc/nginx/templates/*.template with envsubst
 CMD ["nginx", "-g", "daemon off;"]
