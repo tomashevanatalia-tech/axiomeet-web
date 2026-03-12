@@ -5,6 +5,10 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import OnboardingPage from './pages/OnboardingPage';
 import DashboardPage from './pages/DashboardPage';
+import AdminUsersPage from './pages/AdminUsersPage';
+import AdminBillingPage from './pages/AdminBillingPage';
+import AdminAnalyticsPage from './pages/AdminAnalyticsPage';
+import AdminSettingsPage from './pages/AdminSettingsPage';
 import './index.css';
 
 function ProtectedRoute({ children }) {
@@ -38,6 +42,10 @@ function AppRoutes() {
       {/* App (protected, with sidebar) */}
       <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/admin/users" element={<AdminUsersPage />} />
+        <Route path="/admin/billing" element={<AdminBillingPage />} />
+        <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
+        <Route path="/admin/settings" element={<AdminSettingsPage />} />
       </Route>
 
       {/* Fallback */}

@@ -23,7 +23,7 @@ export default function AppLayout() {
           <span className="logo-text">AxioMeet</span>
         </div>
 
-        <div className="sidebar-section-label">Навигация</div>
+        <div className="sidebar-section-label">Основное</div>
         <nav className="sidebar-nav">
           <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'active' : ''}>
             <span className="nav-icon">📊</span>
@@ -35,8 +35,29 @@ export default function AppLayout() {
           </NavLink>
         </nav>
 
-        <div className="sidebar-section-label">Аккаунт</div>
+        <div className="sidebar-section-label">Управление</div>
         <nav className="sidebar-nav">
+          <NavLink to="/admin/users" className={({ isActive }) => isActive ? 'active' : ''}>
+            <span className="nav-icon">👥</span>
+            Пользователи
+          </NavLink>
+          <NavLink to="/admin/billing" className={({ isActive }) => isActive ? 'active' : ''}>
+            <span className="nav-icon">💳</span>
+            Тарифы и Биллинг
+          </NavLink>
+          <NavLink to="/admin/analytics" className={({ isActive }) => isActive ? 'active' : ''}>
+            <span className="nav-icon">📈</span>
+            Аналитика
+          </NavLink>
+          <NavLink to="/admin/settings" className={({ isActive }) => isActive ? 'active' : ''}>
+            <span className="nav-icon">⚙️</span>
+            Настройки
+          </NavLink>
+        </nav>
+
+        <div style={{ flex: 1 }} />
+
+        <nav className="sidebar-nav" style={{ marginBottom: 8 }}>
           <button onClick={handleLogout}>
             <span className="nav-icon">🚪</span>
             Выйти

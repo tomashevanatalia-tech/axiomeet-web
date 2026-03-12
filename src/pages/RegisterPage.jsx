@@ -67,7 +67,7 @@ export default function RegisterPage() {
                 type="text"
                 value={form.organization_name}
                 onChange={update('organization_name')}
-                placeholder="ООО Рога и Копыта"
+                placeholder="Ромашка"
                 required
               />
             </div>
