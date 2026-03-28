@@ -3,7 +3,11 @@
  * Central HTTP client with JWT auth, error handling, and base URL config.
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://axiomeet.io';
+// In dev the Vite proxy forwards /api and /oauth to VITE_API_URL.
+// In production builds use the full base URL from env.
+const API_BASE = import.meta.env.DEV
+  ? ''
+  : (import.meta.env.VITE_API_URL || 'https://axiomeet.io');
 
 class ApiError extends Error {
   constructor(message, status, data) {
@@ -111,18 +115,8 @@ const api = {
   disconnectYandex: (orgId) => request('POST', '/oauth/yandex/disconnect', { org_id: orgId }),
 
   // Admin — Platform
-  getPlatformStatus: () => {
-    const url = `${API_BASE}/api/admin/platform-status`;
-    const headers = { 'Content-Type': 'application/json', 'X-Admin-Key': 'axiomeet-admin-2024' };
-    const token = getToken();
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    return fetch(url, { headers }).then(r => r.json());
-  },
-  getAdminOrganizations: () => {
-    const url = `${API_BASE}/api/admin/organizations`;
-    const headers = { 'Content-Type': 'application/json', 'X-Admin-Key': 'axiomeet-admin-2024' };
-    return fetch(url, { headers }).then(r => r.json());
-  },
+  getPlatformStatus: () => request('GET', '/api/admin/platform-status'),
+  getAdminOrganizations: () => request('GET', '/api/admin/organizations'),
 };
 
 export { api, ApiError, getToken, setToken, clearToken, getUser, setUser };

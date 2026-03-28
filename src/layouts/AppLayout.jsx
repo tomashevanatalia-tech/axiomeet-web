@@ -1,53 +1,84 @@
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import CommandPalette from '../components/CommandPalette';
+import {
+  LayoutDashboard, Rocket, Mic, Wallet, Monitor, Users, CreditCard,
+  BarChart3, Settings, LogOut, Search, Bell, ChevronRight,
+} from 'lucide-react';
 
 const NAV_ITEMS = {
   main: [
-    { to: '/dashboard', icon: '📊', label: 'Dashboard' },
-    { to: '/onboarding', icon: '🚀', label: 'Onboarding' },
+    { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/meetings', icon: Mic, label: 'Встречи' },
+    { to: '/billing', icon: Wallet, label: 'Биллинг' },
+    { to: '/onboarding', icon: Rocket, label: 'Onboarding' },
   ],
   admin: [
-    { to: '/admin/platform', icon: '🖥️', label: 'Platform' },
-    { to: '/admin/users', icon: '👥', label: 'Пользователи' },
-    { to: '/admin/billing', icon: '💳', label: 'Тарифы и Биллинг' },
-    { to: '/admin/analytics', icon: '📈', label: 'Аналитика' },
-    { to: '/admin/settings', icon: '⚙️', label: 'Настройки' },
+    { to: '/admin/platform', icon: Monitor, label: 'Platform' },
+    { to: '/admin/users', icon: Users, label: 'Пользователи' },
+    { to: '/admin/billing', icon: CreditCard, label: 'Тарифы' },
+    { to: '/admin/analytics', icon: BarChart3, label: 'Аналитика' },
+    { to: '/admin/settings', icon: Settings, label: 'Настройки' },
   ],
 };
 
 const BREADCRUMB_MAP = {
   '/dashboard': [{ label: 'Dashboard' }],
-  '/admin/users': [{ label: 'Управление', href: '#' }, { label: 'Пользователи' }],
-  '/admin/billing': [{ label: 'Управление', href: '#' }, { label: 'Тарифы и Биллинг' }],
-  '/admin/analytics': [{ label: 'Управление', href: '#' }, { label: 'Аналитика' }],
-  '/admin/settings': [{ label: 'Управление', href: '#' }, { label: 'Настройки' }],
+  '/meetings': [{ label: 'Основное' }, { label: 'Встречи' }],
+  '/billing': [{ label: 'Основное' }, { label: 'Биллинг' }],
+  '/onboarding': [{ label: 'Основное' }, { label: 'Onboarding' }],
+  '/admin/platform': [{ label: 'Управление' }, { label: 'Platform' }],
+  '/admin/users': [{ label: 'Управление' }, { label: 'Пользователи' }],
+  '/admin/billing': [{ label: 'Управление' }, { label: 'Тарифы' }],
+  '/admin/analytics': [{ label: 'Управление' }, { label: 'Аналитика' }],
+  '/admin/settings': [{ label: 'Управление' }, { label: 'Настройки' }],
 };
 
-function SidebarNavItem({ to, icon, label }) {
+function SidebarNavItem({ to, icon: Icon, label }) {
   return (
     <NavLink to={to} className={({ isActive }) => isActive ? 'active' : ''}>
-      <span className="nav-icon">{icon}</span>
+      <span className="nav-icon"><Icon size={18} strokeWidth={1.8} /></span>
       {label}
     </NavLink>
   );
 }
 
-function TopBar() {
+function SidebarSearch() {
   const openSearch = () => {
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }));
   };
+  return (
+    <div className="sidebar-search" onClick={openSearch} role="button" tabIndex={0}>
+      <Search size={14} />
+      <span>Поиск...</span>
+      <kbd>⌘K</kbd>
+    </div>
+  );
+}
+
+function TopBar() {
+  const location = useLocation();
+  const crumbs = BREADCRUMB_MAP[location.pathname] || [];
 
   return (
     <div className="app-top-bar">
-      <div className="top-bar-search" onClick={openSearch} role="button" tabIndex={0}>
-        <span>🔍</span>
-        <span>Поиск страниц и команд...</span>
-        <kbd>Ctrl+K</kbd>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        {crumbs.map((c, i) => (
+          <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            {i > 0 && <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />}
+            <span style={{
+              fontSize: 'var(--font-sm)',
+              fontWeight: i === crumbs.length - 1 ? 600 : 400,
+              color: i === crumbs.length - 1 ? 'var(--text-primary)' : 'var(--text-muted)',
+            }}>
+              {c.label}
+            </span>
+          </span>
+        ))}
       </div>
       <div className="top-bar-actions">
         <button className="notification-btn" title="Уведомления">
-          🔔
+          <Bell size={18} />
           <span className="notification-badge" />
         </button>
       </div>
@@ -74,7 +105,6 @@ export default function AppLayout() {
 
   return (
     <div className="app-layout">
-      {/* Command Palette */}
       <CommandPalette />
 
       {/* Sidebar */}
@@ -84,6 +114,8 @@ export default function AppLayout() {
           <span className="logo-text">AxioMeet</span>
         </div>
 
+        <SidebarSearch />
+
         <div className="sidebar-section-label">Основное</div>
         <nav className="sidebar-nav">
           {NAV_ITEMS.main.map((item) => (
@@ -91,18 +123,22 @@ export default function AppLayout() {
           ))}
         </nav>
 
-        <div className="sidebar-section-label">Управление</div>
-        <nav className="sidebar-nav">
-          {NAV_ITEMS.admin.map((item) => (
-            <SidebarNavItem key={item.to} {...item} />
-          ))}
-        </nav>
+        {user?.role === 'admin' && (
+          <>
+            <div className="sidebar-section-label">Управление</div>
+            <nav className="sidebar-nav">
+              {NAV_ITEMS.admin.map((item) => (
+                <SidebarNavItem key={item.to} {...item} />
+              ))}
+            </nav>
+          </>
+        )}
 
         <div style={{ flex: 1 }} />
 
         <nav className="sidebar-nav" style={{ marginBottom: 8 }}>
           <button onClick={handleLogout}>
-            <span className="nav-icon">🚪</span>
+            <span className="nav-icon"><LogOut size={18} strokeWidth={1.8} /></span>
             Выйти
           </button>
         </nav>

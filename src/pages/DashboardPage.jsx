@@ -261,8 +261,29 @@ export default function DashboardPage() {
     setLoading(true);
     setError('');
     try {
-      const result = await api.getDashboard();
-      setData(result);
+      const [dashData, usageData, connectionsData, meetingsData] = await Promise.all([
+        api.getDashboard().catch(() => ({})),
+        api.getUsage().catch(() => null),
+        api.getConnections().catch(() => null),
+        api.getMeetings(20).catch(() => null),
+      ]);
+
+      // Normalize connections — API may return array or { connections: [...] }
+      let connections = connectionsData ?? dashData?.connections ?? [];
+      if (connections && !Array.isArray(connections)) {
+        connections = connections.connections ?? connections.items ?? [];
+      }
+
+      // Normalize meetings — API may return array or { meetings: [...] }
+      let recent_meetings = meetingsData ?? dashData?.recent_meetings ?? dashData?.meetings ?? [];
+      if (recent_meetings && !Array.isArray(recent_meetings)) {
+        recent_meetings = recent_meetings.meetings ?? recent_meetings.items ?? [];
+      }
+
+      // Normalize usage — may be top-level or nested
+      const usage = usageData ?? dashData?.usage ?? dashData?.stats ?? {};
+
+      setData({ ...dashData, usage, connections, recent_meetings });
     } catch (err) {
       setError(err.message || 'Ошибка загрузки');
     } finally {
@@ -314,7 +335,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Org Banner */}
-      <OrgBanner usage={usage} orgName="FOXMetoD" />
+      <OrgBanner usage={usage} orgName={data?.organization_name || data?.org?.name || data?.org_name || 'Организация'} />
 
       {/* Stats Row */}
       <div className="stat-grid-4">

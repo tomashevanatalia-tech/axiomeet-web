@@ -6,6 +6,8 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import OnboardingPage from './pages/OnboardingPage';
 import DashboardPage from './pages/DashboardPage';
+import MeetingsPage from './pages/MeetingsPage';
+import BillingPage from './pages/BillingPage';
 import AdminUsersPage from './pages/AdminUsersPage';
 import AdminBillingPage from './pages/AdminBillingPage';
 import AdminAnalyticsPage from './pages/AdminAnalyticsPage';
@@ -31,6 +33,12 @@ function PublicRoute({ children }) {
   return user ? <Navigate to="/dashboard" replace /> : children;
 }
 
+function AdminRoute({ children }) {
+  const { user } = useAuth();
+  if (!user || user.role !== 'admin') return <Navigate to="/dashboard" replace />;
+  return children;
+}
+
 function AppRoutes() {
   return (
     <Routes>
@@ -44,11 +52,13 @@ function AppRoutes() {
       {/* App (protected, with sidebar) */}
       <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/admin/platform" element={<PlatformOverviewPage />} />
-        <Route path="/admin/users" element={<AdminUsersPage />} />
-        <Route path="/admin/billing" element={<AdminBillingPage />} />
-        <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
-        <Route path="/admin/settings" element={<AdminSettingsPage />} />
+        <Route path="/meetings" element={<MeetingsPage />} />
+        <Route path="/billing" element={<BillingPage />} />
+        <Route path="/admin/platform" element={<AdminRoute><PlatformOverviewPage /></AdminRoute>} />
+        <Route path="/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
+        <Route path="/admin/billing" element={<AdminRoute><AdminBillingPage /></AdminRoute>} />
+        <Route path="/admin/analytics" element={<AdminRoute><AdminAnalyticsPage /></AdminRoute>} />
+        <Route path="/admin/settings" element={<AdminRoute><AdminSettingsPage /></AdminRoute>} />
       </Route>
 
       {/* Fallback */}

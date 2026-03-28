@@ -9,8 +9,8 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const token = getToken();
-    if (token && !user) {
-      // Try to restore session
+    if (token) {
+      // Always verify token validity on app start
       api.getDashboard()
         .then(() => {
           setUserState(getUser());
@@ -52,7 +52,7 @@ export function AuthProvider({ children }) {
     const userData = {
       id: data.user?.id || data.user_id,
       email: data.user?.email || formData.email,
-      name: data.user?.display_name || formData.display_name || formData.email.split('@')[0],
+      name: data.user?.display_name || data.user?.name || formData.display_name || formData.name || formData.email.split('@')[0],
       organization_id: data.user?.organization_id || data.organization?.id || data.organization_id,
       role: data.user?.role || 'admin',
     };
