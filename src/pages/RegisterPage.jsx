@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
+import { useLang, LangSwitcher } from '../LangContext';
 
 export default function RegisterPage() {
   const { register } = useAuth();
+  const { t } = useLang();
   const navigate = useNavigate();
   const [form, setForm] = useState({
     email: '',
@@ -20,7 +22,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setError('');
     if (form.password.length < 8) {
-      setError('Пароль должен содержать минимум 8 символов');
+      setError(t('auth.register.password.short'));
       return;
     }
     setLoading(true);
@@ -28,7 +30,7 @@ export default function RegisterPage() {
       await register(form);
       navigate('/onboarding');
     } catch (err) {
-      setError(err.message || 'Ошибка регистрации');
+      setError(err.message || t('auth.register.error.default'));
     } finally {
       setLoading(false);
     }
@@ -37,63 +39,66 @@ export default function RegisterPage() {
   return (
     <div className="auth-page">
       <div className="auth-container">
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+          <LangSwitcher />
+        </div>
         <div className="auth-header">
           <div className="auth-logo">🚀</div>
-          <h1>Создайте аккаунт</h1>
-          <p>Начните анализировать встречи с AxioMeet</p>
+          <h1>{t('auth.register.title')}</h1>
+          <p>{t('auth.register.subtitle')}</p>
         </div>
 
         <div className="auth-card">
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label" htmlFor="reg-name">Ваше имя</label>
+              <label className="form-label" htmlFor="reg-name">{t('auth.register.name')}</label>
               <input
                 id="reg-name"
                 className="form-input"
                 type="text"
                 value={form.name}
                 onChange={update('name')}
-                placeholder="Иван Петров"
+                placeholder={t('auth.register.name.placeholder')}
                 required
                 autoFocus
               />
             </div>
 
             <div className="form-group">
-              <label className="form-label" htmlFor="reg-org">Название компании</label>
+              <label className="form-label" htmlFor="reg-org">{t('auth.register.org')}</label>
               <input
                 id="reg-org"
                 className="form-input"
                 type="text"
                 value={form.organization_name}
                 onChange={update('organization_name')}
-                placeholder="Ромашка"
+                placeholder={t('auth.register.org.placeholder')}
                 required
               />
             </div>
 
             <div className="form-group">
-              <label className="form-label" htmlFor="reg-email">Email</label>
+              <label className="form-label" htmlFor="reg-email">{t('auth.email')}</label>
               <input
                 id="reg-email"
                 className="form-input"
                 type="email"
                 value={form.email}
                 onChange={update('email')}
-                placeholder="your@company.com"
+                placeholder={t('auth.register.email.placeholder')}
                 required
               />
             </div>
 
             <div className="form-group">
-              <label className="form-label" htmlFor="reg-password">Пароль</label>
+              <label className="form-label" htmlFor="reg-password">{t('auth.password')}</label>
               <input
                 id="reg-password"
                 className="form-input"
                 type="password"
                 value={form.password}
                 onChange={update('password')}
-                placeholder="Минимум 8 символов"
+                placeholder={t('auth.register.password.placeholder')}
                 required
                 minLength={8}
               />
@@ -108,17 +113,17 @@ export default function RegisterPage() {
               disabled={loading}
             >
               {loading ? <span className="spinner" /> : null}
-              {loading ? 'Создание...' : 'Создать аккаунт'}
+              {loading ? t('auth.register.submitting') : t('auth.register.submit')}
             </button>
 
             <div className="form-hint" style={{ textAlign: 'center', marginTop: 12 }}>
-              Бесплатно: 3 часа обработки в месяц
+              {t('auth.register.hint')}
             </div>
           </form>
         </div>
 
         <div className="auth-footer">
-          Уже есть аккаунт? <Link to="/login">Войти</Link>
+          {t('auth.register.footer')} <Link to="/login">{t('auth.register.footer.link')}</Link>
         </div>
       </div>
     </div>

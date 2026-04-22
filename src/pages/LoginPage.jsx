@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
+import { useLang, LangSwitcher } from '../LangContext';
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const { t } = useLang();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,7 +20,7 @@ export default function LoginPage() {
       await login(email, password);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.message || 'Ошибка входа');
+      setError(err.message || t('auth.login.error.default'));
     } finally {
       setLoading(false);
     }
@@ -27,16 +29,19 @@ export default function LoginPage() {
   return (
     <div className="auth-page">
       <div className="auth-container">
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+          <LangSwitcher />
+        </div>
         <div className="auth-header">
           <div className="auth-logo">🎙️</div>
-          <h1>Добро пожаловать</h1>
-          <p>Войдите в AxioMeet для управления встречами</p>
+          <h1>{t('auth.login.title')}</h1>
+          <p>{t('auth.login.subtitle')}</p>
         </div>
 
         <div className="auth-card">
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label" htmlFor="login-email">Email</label>
+              <label className="form-label" htmlFor="login-email">{t('auth.email')}</label>
               <input
                 id="login-email"
                 className="form-input"
@@ -50,14 +55,14 @@ export default function LoginPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label" htmlFor="login-password">Пароль</label>
+              <label className="form-label" htmlFor="login-password">{t('auth.password')}</label>
               <input
                 id="login-password"
                 className="form-input"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder={t('auth.password.placeholder')}
                 required
               />
             </div>
@@ -71,13 +76,13 @@ export default function LoginPage() {
               disabled={loading}
             >
               {loading ? <span className="spinner" /> : null}
-              {loading ? 'Вход...' : 'Войти'}
+              {loading ? t('auth.login.submitting') : t('auth.login.submit')}
             </button>
           </form>
         </div>
 
         <div className="auth-footer">
-          Нет аккаунта? <Link to="/register">Зарегистрируйтесь</Link>
+          {t('auth.login.footer')} <Link to="/register">{t('auth.login.footer.link')}</Link>
         </div>
       </div>
     </div>
