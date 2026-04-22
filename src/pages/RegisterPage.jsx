@@ -43,7 +43,9 @@ export default function RegisterPage() {
           <LangSwitcher />
         </div>
         <div className="auth-header">
-          <div className="auth-logo">🚀</div>
+          <div className="auth-logo">
+            <span className="brand-wordmark">AxioMeet</span>
+          </div>
           <h1>{t('auth.register.title')}</h1>
           <p>{t('auth.register.subtitle')}</p>
         </div>

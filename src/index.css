@@ -7,18 +7,30 @@
 
 /* ── Design Tokens ──────────────────────────────────────────────── */
 :root {
-  /* Primary — Indigo */
-  --primary-50: #eef2ff;
-  --primary-100: #e0e7ff;
-  --primary-200: #c7d2fe;
-  --primary-300: #a5b4fc;
-  --primary-400: #818cf8;
-  --primary-500: #6366f1;
-  --primary-600: #4f46e5;
-  --primary-700: #4338ca;
+  /* Primary — AxioMeet Navy (matches axiomeet.ru landing) */
+  --primary-50: #eef3f8;
+  --primary-100: #d6e1ed;
+  --primary-200: #aec4da;
+  --primary-300: #7c9cbd;
+  --primary-400: #4873a0;
+  --primary-500: #2A5580;
+  --primary-600: #1B3A5C;
+  --primary-700: #142D48;
+
+  /* Brand accents (axiomeet.ru gradient palette) */
+  --brand-navy: #1B3A5C;
+  --brand-navy-dark: #142D48;
+  --brand-navy-light: #2A5580;
+  --brand-teal: #2BB5B2;
+  --brand-teal-light: #5FCFCC;
+  --brand-orange: #E8833A;
+  --brand-gradient: linear-gradient(135deg, #1B3A5C 0%, #2BB5B2 50%, #E8833A 100%);
+  --brand-gradient-soft: linear-gradient(135deg, rgba(27,58,92,0.08) 0%, rgba(43,181,178,0.08) 50%, rgba(232,131,58,0.06) 100%);
+  --brand-shadow: 0 4px 24px rgba(43, 181, 178, 0.35);
+  --brand-shadow-hover: 0 8px 32px rgba(43, 181, 178, 0.5);
 
   /* Neutrals — Slate */
-  --bg-body: #f1f5f9;
+  --bg-body: #f8fafc;
   --bg-sidebar: #ffffff;
   --bg-card: #ffffff;
   --bg-content: #f8fafc;
@@ -135,7 +147,7 @@ table { border-collapse: collapse; width: 100%; }
 .logo-icon {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+  background: var(--brand-gradient);
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
@@ -143,13 +155,17 @@ table { border-collapse: collapse; width: 100%; }
   font-size: 18px;
   color: #fff;
   flex-shrink: 0;
+  box-shadow: 0 2px 10px rgba(43, 181, 178, 0.25);
 }
 
 .logo-text {
   font-size: var(--font-lg);
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .sidebar-search {
@@ -807,13 +823,20 @@ td.muted { color: var(--text-muted); font-size: var(--font-sm); }
   white-space: nowrap;
 }
 .btn-primary {
-  background: var(--primary-600);
+  background: var(--brand-gradient);
   color: #fff;
-  border-color: var(--primary-600);
+  border: none;
+  box-shadow: var(--brand-shadow);
 }
 .btn-primary:hover {
-  background: var(--primary-700);
-  box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+  background: var(--brand-gradient);
+  box-shadow: var(--brand-shadow-hover);
+  transform: translateY(-1px);
+}
+.btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
 }
 .btn-secondary {
   background: var(--bg-card);
@@ -1067,23 +1090,68 @@ td.muted { color: var(--text-muted); font-size: var(--font-sm); }
 }
 
 /* ── Login / Register Pages ─────────────────────────────────────── */
+@keyframes heroFloat {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33%      { transform: translate(-1.5%, 1%) rotate(0.5deg); }
+  66%      { transform: translate(1%, -1.5%) rotate(-0.5deg); }
+}
+
 .auth-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-body);
-  padding: 20px;
+  background: #ffffff;
+  padding: 48px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-page::before {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  background:
+    radial-gradient(circle at 25% 40%, rgba(27, 58, 92, 0.10) 0%, transparent 55%),
+    radial-gradient(circle at 78% 55%, rgba(43, 181, 178, 0.10) 0%, transparent 55%),
+    radial-gradient(circle at 50% 85%, rgba(232, 131, 58, 0.06) 0%, transparent 55%);
+  animation: heroFloat 25s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.auth-page > * {
+  position: relative;
+  z-index: 1;
+}
+
+.brand-wordmark {
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+  line-height: 1.1;
 }
 
 .auth-card {
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
-  padding: 40px;
-  box-shadow: var(--shadow-lg);
+  padding: 36px 32px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 20px 60px rgba(15, 23, 42, 0.08);
+  text-align: left;
+}
+
+.auth-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .auth-logo {
@@ -1159,11 +1227,15 @@ td.muted { color: var(--text-muted); font-size: var(--font-sm); }
   text-align: center;
   margin-top: 20px;
   font-size: var(--font-sm);
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 .auth-footer a {
-  color: var(--primary-600);
-  font-weight: 600;
+  color: var(--brand-navy);
+  font-weight: 700;
+  transition: color var(--transition);
+}
+.auth-footer a:hover {
+  color: var(--brand-teal);
 }
 
 /* ── Onboarding Page ────────────────────────────────────────────── */
@@ -1463,10 +1535,10 @@ td.muted { color: var(--text-muted); font-size: var(--font-sm); }
 
 .form-input {
   width: 100%;
-  padding: 10px 14px;
-  border: 1px solid var(--border-color);
+  padding: 11px 14px;
+  border: 1.5px solid var(--border-color);
   border-radius: var(--radius-md);
-  font-size: var(--font-base);
+  font-size: var(--font-md);
   font-family: var(--font-family);
   background: var(--bg-card);
   color: var(--text-primary);
@@ -1474,8 +1546,8 @@ td.muted { color: var(--text-muted); font-size: var(--font-sm); }
 }
 .form-input:focus {
   outline: none;
-  border-color: var(--primary-500);
-  box-shadow: 0 0 0 3px var(--primary-100);
+  border-color: var(--brand-teal);
+  box-shadow: 0 0 0 3px rgba(43, 181, 178, 0.18);
 }
 .form-input::placeholder { color: var(--text-placeholder); }
 
@@ -1641,17 +1713,19 @@ select.form-input { appearance: auto; cursor: pointer; }
   text-align: center;
 }
 
-.auth-header { margin-bottom: 24px; }
-.auth-header .auth-logo { font-size: 40px; margin-bottom: 12px; }
+.auth-header { margin-bottom: 28px; }
+.auth-header .auth-logo { margin-bottom: 14px; }
 .auth-header h1 {
-  font-size: var(--font-xl);
-  font-weight: 700;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  line-height: 1.2;
 }
 .auth-header p {
-  font-size: var(--font-sm);
-  color: var(--text-muted);
+  font-size: var(--font-base);
+  color: var(--text-secondary);
 }
 
 /* ── Onboarding Styles ──────────────────────────────────────────── */
