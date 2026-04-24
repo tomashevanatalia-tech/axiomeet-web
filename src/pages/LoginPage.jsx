@@ -57,7 +57,21 @@ export default function LoginPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label" htmlFor="login-password">{t('auth.password')}</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
+                <label className="form-label" htmlFor="login-password" style={{ marginBottom: 0 }}>
+                  {t('auth.password')}
+                </label>
+                <Link
+                  to="/forgot-password"
+                  style={{
+                    fontSize: 'var(--font-xs)',
+                    fontWeight: 600,
+                    color: 'var(--brand-navy)',
+                  }}
+                >
+                  {t('auth.login.forgot')}
+                </Link>
+              </div>
               <input
                 id="login-password"
                 className="form-input"

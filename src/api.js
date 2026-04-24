@@ -86,6 +86,11 @@ const api = {
   // Auth
   login: (email, password) => request('POST', '/api/v1/auth/login', { email, password }),
   register: (data) => request('POST', '/api/v1/auth/register', data),
+  forgotPassword: (email) => request('POST', '/api/v1/auth/forgot-password', { email }),
+  resetPassword: (token, newPassword) =>
+    request('POST', '/api/v1/auth/reset-password', { token, new_password: newPassword }),
+  changePassword: (currentPassword, newPassword) =>
+    request('POST', '/api/v1/auth/change-password', { current_password: currentPassword, new_password: newPassword }),
 
   // Onboarding
   getOnboardingProgress: () => request('GET', '/api/v1/onboarding/progress'),

@@ -286,7 +286,7 @@ table { border-collapse: collapse; width: 100%; }
   width: 34px;
   height: 34px;
   border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--primary-400), var(--primary-600));
+  background: var(--brand-gradient);
   color: #fff;
   display: flex;
   align-items: center;
@@ -294,6 +294,7 @@ table { border-collapse: collapse; width: 100%; }
   font-size: var(--font-xs);
   font-weight: 700;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(43, 181, 178, 0.2);
 }
 
 .user-info { min-width: 0; }
@@ -1508,8 +1509,8 @@ td.muted { color: var(--text-muted); font-size: var(--font-sm); }
   --color-primary-500: var(--primary-500);
   --color-primary-600: var(--primary-600);
   --color-primary-700: var(--primary-700);
-  --color-accent-400: #22d3ee;
-  --color-accent-500: #06b6d4;
+  --color-accent-400: var(--brand-teal-light);
+  --color-accent-500: var(--brand-teal);
   --color-bg: var(--bg-body);
   --color-bg-elevated: var(--bg-card);
   --color-bg-card: var(--bg-card);
