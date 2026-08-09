@@ -5,7 +5,7 @@ import { useLang, LangSwitcher } from '../LangContext';
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const { t } = useLang();
+  const { lang, t } = useLang();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,7 +34,7 @@ export default function LoginPage() {
         </div>
         <div className="auth-header">
           <div className="auth-logo">
-            <span className="brand-wordmark">AxioMeet</span>
+            <span className="brand-wordmark">{lang === 'ru' ? 'Аксиомит (AxioMeet)' : 'AxioMeet'}</span>
           </div>
           <h1>{t('auth.login.title')}</h1>
           <p>{t('auth.login.subtitle')}</p>

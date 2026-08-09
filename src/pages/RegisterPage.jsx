@@ -5,7 +5,7 @@ import { useLang, LangSwitcher } from '../LangContext';
 
 export default function RegisterPage() {
   const { register } = useAuth();
-  const { t } = useLang();
+  const { lang, t } = useLang();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const requestedPlan = searchParams.get('plan');
@@ -54,7 +54,7 @@ export default function RegisterPage() {
         </div>
         <div className="auth-header">
           <div className="auth-logo">
-            <span className="brand-wordmark">AxioMeet</span>
+            <span className="brand-wordmark">{lang === 'ru' ? 'Аксиомит (AxioMeet)' : 'AxioMeet'}</span>
           </div>
           <h1>{t('auth.register.title')}</h1>
           <p>{t('auth.register.subtitle')}</p>

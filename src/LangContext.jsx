@@ -8,6 +8,14 @@ export function LangProvider({ children }) {
 
   useEffect(() => {
     document.documentElement.lang = lang;
+    const description = document.querySelector('meta[name="description"]');
+    if (lang === 'ru') {
+      document.title = 'Аксиомит (AxioMeet) — протоколы встреч с помощью ИИ';
+      description?.setAttribute('content', 'Аксиомит (AxioMeet) — сервис для транскрипции и подготовки протоколов встреч с помощью искусственного интеллекта.');
+    } else {
+      document.title = 'AxioMeet — AI Meeting Analytics';
+      description?.setAttribute('content', 'AxioMeet — AI-powered meeting analysis platform. Записывайте, транскрибируйте и анализируйте ваши встречи автоматически.');
+    }
   }, [lang]);
 
   const value = useMemo(() => ({
