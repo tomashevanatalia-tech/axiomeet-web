@@ -104,12 +104,15 @@ const api = {
     request('POST', '/api/v1/onboarding/skip-step', { step_name: stepName }),
   testConnection: (type) =>
     request('POST', '/api/v1/onboarding/test-connection', { connection_type: type }),
+  createDemoMeeting: (template = 'standard') =>
+    request('POST', '/api/v1/onboarding/demo-meeting', { template }),
 
   // Dashboard
   getDashboard: () => request('GET', '/api/v1/dashboard'),
   getUsage: () => request('GET', '/api/v1/dashboard/usage'),
   getConnections: () => request('GET', '/api/v1/dashboard/connections'),
   getMeetings: (limit = 20) => request('GET', `/api/v1/dashboard/meetings?limit=${limit}`),
+  getMeetingDetail: (uuid) => request('GET', `/api/v1/client/meetings/${encodeURIComponent(uuid)}`),
 
   // OAuth
   getZoomAuthUrl: (orgId) => `${API_BASE}/oauth/zoom/authorize?org_id=${orgId}`,
