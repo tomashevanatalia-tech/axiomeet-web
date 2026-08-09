@@ -1,3 +1,4 @@
+import { createElement } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import CommandPalette from '../components/CommandPalette';
@@ -34,10 +35,10 @@ const BREADCRUMB_MAP = {
   '/admin/settings': [{ label: 'Управление' }, { label: 'Настройки' }],
 };
 
-function SidebarNavItem({ to, icon: Icon, label }) {
+function SidebarNavItem({ to, icon, label }) {
   return (
     <NavLink to={to} className={({ isActive }) => isActive ? 'active' : ''}>
-      <span className="nav-icon"><Icon size={18} strokeWidth={1.8} /></span>
+      <span className="nav-icon">{createElement(icon, { size: 18, strokeWidth: 1.8 })}</span>
       {label}
     </NavLink>
   );
