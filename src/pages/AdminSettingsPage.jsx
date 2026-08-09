@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { createElement, useState, useEffect } from 'react';
 import api from '../api';
 import { useAuth } from '../AuthContext';
 import PageHeader from '../components/PageHeader';
@@ -9,12 +9,12 @@ import {
   CheckCircle2, Save, Loader2, ExternalLink, AlertCircle,
 } from 'lucide-react';
 
-function ConnectionCard({ icon: Icon, name, description, color, status, onAction, actionLabel }) {
+function ConnectionCard({ icon, name, description, color, status, onAction, actionLabel }) {
   const isConnected = status === 'connected';
   return (
     <div className="connection-row" style={{ padding: 14 }}>
       <div className="connection-icon-wrap" style={{ background: `${color}15`, color }}>
-        <Icon size={20} />
+        {createElement(icon, { size: 20 })}
       </div>
       <div className="connection-details">
         <div className="connection-name">{name}</div>
