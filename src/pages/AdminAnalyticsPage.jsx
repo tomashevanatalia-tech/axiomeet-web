@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { createElement, useCallback, useEffect, useState } from 'react';
 import api from '../api';
 import PageHeader from '../components/PageHeader';
 import EmptyState from '../components/EmptyState';
@@ -7,12 +7,12 @@ import {
   TrendingDown, Percent, Calculator, RefreshCw,
 } from 'lucide-react';
 
-function StatCard({ icon: Icon, value, label, accentColor, trend }) {
+function StatCard({ icon, value, label, accentColor, trend }) {
   return (
     <div className="stat-card" style={{ '--accent': accentColor }}>
       <div className="stat-card-top">
         <div className="stat-card-icon" style={{ background: `${accentColor}15`, color: accentColor }}>
-          <Icon size={20} />
+          {createElement(icon, { size: 20 })}
         </div>
         {trend !== undefined && trend !== null && (
           <span className="stat-trend" style={{ color: trend >= 0 ? '#10b981' : '#ef4444' }}>
@@ -27,7 +27,7 @@ function StatCard({ icon: Icon, value, label, accentColor, trend }) {
   );
 }
 
-function FinanceCard({ icon: Icon, label, value, color, subtitle }) {
+function FinanceCard({ icon, label, value, color, subtitle }) {
   return (
     <div className="card" style={{ position: 'relative', overflow: 'hidden' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
@@ -36,7 +36,7 @@ function FinanceCard({ icon: Icon, label, value, color, subtitle }) {
           background: `${color}15`, color, display: 'flex',
           alignItems: 'center', justifyContent: 'center',
         }}>
-          <Icon size={18} />
+          {createElement(icon, { size: 18 })}
         </div>
         <span style={{ fontSize: 'var(--font-sm)', color: 'var(--text-muted)', fontWeight: 500 }}>{label}</span>
       </div>
@@ -124,9 +124,7 @@ export default function AdminAnalyticsPage() {
   const [period, setPeriod] = useState('30d');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { loadAnalytics(); }, [period]);
-
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     setLoading(true);
     try {
       const data = await api.get(`/api/v1/admin/analytics?period=${period}`);
@@ -140,7 +138,9 @@ export default function AdminAnalyticsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [period]);
+
+  useEffect(() => { loadAnalytics(); }, [loadAnalytics]);
 
   if (loading) {
     return (
