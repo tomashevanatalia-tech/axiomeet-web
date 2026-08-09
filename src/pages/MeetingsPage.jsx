@@ -49,7 +49,6 @@ function MeetingRow({ meeting, onView }) {
   const status = STATUS_MAP[meeting.status || meeting.state] || { label: meeting.status || '—', cls: 'badge-muted' };
   const StIcon = status.icon || FileText;
   const hasProtocol = meeting.status === 'PUBLISHED' || meeting.state === 'PUBLISHED' || meeting.has_protocol;
-  const hasTranscript = meeting.has_transcript || hasProtocol;
 
   return (
     <tr>
@@ -116,7 +115,7 @@ function MeetingRow({ meeting, onView }) {
   );
 }
 
-function MeetingDetail({ meeting, onClose }) {
+function MeetingDetail({ meeting, onClose, loading }) {
   if (!meeting) return null;
 
   return (
@@ -151,6 +150,17 @@ function MeetingDetail({ meeting, onClose }) {
           </span>
         </div>
       </div>
+
+      {loading && <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)', marginBottom: 16 }}><RefreshCw size={15} className="spinning" /> Загружаем протокол…</div>}
+
+      {meeting.protocol_md && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', marginBottom: 7 }}>Протокол</div>
+          <div style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', background: 'var(--bg-content)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)', padding: 18, lineHeight: 1.65, maxHeight: 520, overflowY: 'auto' }}>
+            {meeting.protocol_md}
+          </div>
+        </div>
+      )}
 
       {/* Action Links */}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -187,7 +197,21 @@ export default function MeetingsPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
   const [selectedMeeting, setSelectedMeeting] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
   const perPage = 20;
+
+  const viewMeeting = async (meeting) => {
+    setSelectedMeeting(meeting);
+    setDetailLoading(true);
+    try {
+      const detail = await api.getMeetingDetail(meeting.uuid);
+      setSelectedMeeting({ ...meeting, ...detail });
+    } catch {
+      // Keep the list summary visible if the detail endpoint is temporarily unavailable.
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   useEffect(() => { loadMeetings(); }, []);
 
@@ -297,7 +321,7 @@ export default function MeetingsPage() {
 
       {/* Selected Meeting Detail */}
       {selectedMeeting && (
-        <MeetingDetail meeting={selectedMeeting} onClose={() => setSelectedMeeting(null)} />
+        <MeetingDetail meeting={selectedMeeting} loading={detailLoading} onClose={() => setSelectedMeeting(null)} />
       )}
 
       {/* Filters */}
@@ -356,7 +380,7 @@ export default function MeetingsPage() {
                     <MeetingRow
                       key={m.id}
                       meeting={m}
-                      onView={(meeting) => setSelectedMeeting(meeting)}
+                      onView={viewMeeting}
                     />
                   ))}
                 </tbody>
