@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { createElement, useState, useEffect } from 'react';
 import api from '../api';
 import {
   Activity, Brain, Mic, Zap, Bot, Sparkles,
@@ -31,11 +31,11 @@ function StatusBadge({ status }) {
   );
 }
 
-function MetricCard({ icon: Icon, value, label, color }) {
+function MetricCard({ icon, value, label, color }) {
   return (
     <div className="plat-metric" style={{ '--mc': color }}>
       <div className="plat-metric-icon" style={{ background: `${color}15`, color }}>
-        <Icon size={20} />
+        {createElement(icon, { size: 20 })}
       </div>
       <div className="plat-metric-val">{value}</div>
       <div className="plat-metric-label">{label}</div>

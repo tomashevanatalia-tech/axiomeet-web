@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { useLang, LangSwitcher } from '../LangContext';
 
@@ -7,16 +7,25 @@ export default function RegisterPage() {
   const { register } = useAuth();
   const { t } = useLang();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const requestedPlan = searchParams.get('plan');
+  const selectedPlan = ['trial', 'starter', 'business'].includes(requestedPlan) ? requestedPlan : 'trial';
+  const source = (searchParams.get('source') || 'direct').slice(0, 100);
   const [form, setForm] = useState({
     email: '',
     password: '',
-    name: '',
+    display_name: '',
     organization_name: '',
+    personal_data_consent: false,
+    terms_accepted: false,
+    selected_plan: selectedPlan,
+    source,
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const update = (field) => (e) => setForm({ ...form, [field]: e.target.value });
+  const toggle = (field) => (e) => setForm({ ...form, [field]: e.target.checked });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,6 +37,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await register(form);
+      localStorage.setItem('axiomeet_selected_plan', selectedPlan);
       navigate('/onboarding');
     } catch (err) {
       setError(err.message || t('auth.register.error.default'));
@@ -58,8 +68,8 @@ export default function RegisterPage() {
                 id="reg-name"
                 className="form-input"
                 type="text"
-                value={form.name}
-                onChange={update('name')}
+                value={form.display_name}
+                onChange={update('display_name')}
                 placeholder={t('auth.register.name.placeholder')}
                 required
                 autoFocus
@@ -104,6 +114,42 @@ export default function RegisterPage() {
                 required
                 minLength={8}
               />
+            </div>
+
+            <div className="form-group" style={{ marginBottom: 12 }}>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 9, fontSize: 13, lineHeight: 1.45, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={form.personal_data_consent}
+                  onChange={toggle('personal_data_consent')}
+                  required
+                  style={{ marginTop: 3 }}
+                />
+                <span>
+                  {t('auth.register.pd.prefix')}{' '}
+                  <a href="https://axiomeet.ru/consent" target="_blank" rel="noopener noreferrer">{t('auth.register.pd.consent')}</a>{' '}
+                  {t('auth.register.pd.and')}{' '}
+                  <a href="https://axiomeet.ru/privacy" target="_blank" rel="noopener noreferrer">{t('auth.register.pd.policy')}</a>.
+                </span>
+              </label>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: 16 }}>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 9, fontSize: 13, lineHeight: 1.45, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={form.terms_accepted}
+                  onChange={toggle('terms_accepted')}
+                  required
+                  style={{ marginTop: 3 }}
+                />
+                <span>
+                  {t('auth.register.terms.prefix')}{' '}
+                  <a href="https://axiomeet.ru/oferta" target="_blank" rel="noopener noreferrer">{t('auth.register.terms.offer')}</a>{' '}
+                  {t('auth.register.terms.and')}{' '}
+                  <a href="https://axiomeet.ru/terms" target="_blank" rel="noopener noreferrer">{t('auth.register.terms.rules')}</a>.
+                </span>
+              </label>
             </div>
 
             {error && <div className="form-error" style={{ marginBottom: 16 }}>⚠️ {error}</div>}

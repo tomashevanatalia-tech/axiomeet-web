@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { createElement, useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
 import api from '../api';
 import {
@@ -27,12 +27,12 @@ function formatTime(iso) {
   return new Date(iso).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 }
 
-function StatCard({ icon: Icon, value, label, sublabel, accentColor, trend }) {
+function StatCard({ icon, value, label, sublabel, accentColor, trend }) {
   return (
     <div className="stat-card" style={{ '--accent': accentColor }}>
       <div className="stat-card-top">
         <div className="stat-card-icon" style={{ background: `${accentColor}15`, color: accentColor }}>
-          <Icon size={20} />
+          {createElement(icon, { size: 20 })}
         </div>
         {trend && (
           <span className="stat-trend" style={{ color: trend > 0 ? '#10b981' : '#ef4444' }}>

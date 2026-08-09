@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useLang } from '../LangContext';
 import api from '../api';
@@ -15,9 +15,7 @@ export default function ResetPasswordPage() {
   const [status, setStatus] = useState('idle'); // idle | submitting | done
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (!token) setError(t('auth.reset.error.notoken'));
-  }, [token, t]);
+  const visibleError = error || (!token ? t('auth.reset.error.notoken') : '');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -101,9 +99,9 @@ export default function ResetPasswordPage() {
             />
           </div>
 
-          {error && (
+          {visibleError && (
             <div className="form-error" style={{ marginBottom: 16 }}>
-              ⚠️ {error}
+              ⚠️ {visibleError}
             </div>
           )}
 
