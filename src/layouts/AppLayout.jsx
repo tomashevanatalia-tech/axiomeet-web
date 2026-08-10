@@ -15,11 +15,13 @@ const NAV_ITEMS = {
     { to: '/onboarding', icon: Rocket, label: 'Onboarding' },
   ],
   admin: [
-    { to: '/admin/platform', icon: Monitor, label: 'Platform' },
     { to: '/admin/users', icon: Users, label: 'Пользователи' },
     { to: '/admin/billing', icon: CreditCard, label: 'Тарифы' },
     { to: '/admin/analytics', icon: BarChart3, label: 'Аналитика' },
     { to: '/admin/settings', icon: Settings, label: 'Настройки' },
+  ],
+  platform: [
+    { to: '/admin/platform', icon: Monitor, label: 'Платформа' },
   ],
 };
 
@@ -124,11 +126,22 @@ export default function AppLayout() {
           ))}
         </nav>
 
-        {user?.role === 'admin' && (
+        {['owner', 'admin'].includes(user?.role) && (
           <>
             <div className="sidebar-section-label">Управление</div>
             <nav className="sidebar-nav">
               {NAV_ITEMS.admin.map((item) => (
+                <SidebarNavItem key={item.to} {...item} />
+              ))}
+            </nav>
+          </>
+        )}
+
+        {user?.is_platform_admin && (
+          <>
+            <div className="sidebar-section-label">Система</div>
+            <nav className="sidebar-nav">
+              {NAV_ITEMS.platform.map((item) => (
                 <SidebarNavItem key={item.to} {...item} />
               ))}
             </nav>

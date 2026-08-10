@@ -10,6 +10,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import OnboardingPage from './pages/OnboardingPage';
 import DashboardPage from './pages/DashboardPage';
 import MeetingsPage from './pages/MeetingsPage';
+import MeetingWorkspacePage from './pages/MeetingWorkspacePage';
 import BillingPage from './pages/BillingPage';
 import AdminUsersPage from './pages/AdminUsersPage';
 import AdminBillingPage from './pages/AdminBillingPage';
@@ -38,7 +39,13 @@ function PublicRoute({ children }) {
 
 function AdminRoute({ children }) {
   const { user } = useAuth();
-  if (!user || user.role !== 'admin') return <Navigate to="/dashboard" replace />;
+  if (!user || !['owner', 'admin'].includes(user.role)) return <Navigate to="/dashboard" replace />;
+  return children;
+}
+
+function PlatformRoute({ children }) {
+  const { user } = useAuth();
+  if (!user?.is_platform_admin) return <Navigate to="/dashboard" replace />;
   return children;
 }
 
@@ -58,8 +65,9 @@ function AppRoutes() {
       <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/meetings" element={<MeetingsPage />} />
+        <Route path="/meetings/:uuid" element={<MeetingWorkspacePage />} />
         <Route path="/billing" element={<BillingPage />} />
-        <Route path="/admin/platform" element={<AdminRoute><PlatformOverviewPage /></AdminRoute>} />
+        <Route path="/admin/platform" element={<PlatformRoute><PlatformOverviewPage /></PlatformRoute>} />
         <Route path="/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
         <Route path="/admin/billing" element={<AdminRoute><AdminBillingPage /></AdminRoute>} />
         <Route path="/admin/analytics" element={<AdminRoute><AdminAnalyticsPage /></AdminRoute>} />
