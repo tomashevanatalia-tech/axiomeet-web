@@ -73,6 +73,8 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    // Start cookie revocation while the legacy bearer token is still available.
+    api.logout().catch(() => {});
     clearToken();
     setUserState(null);
   };
