@@ -88,6 +88,7 @@ const api = {
 
   // Auth
   login: (email, password) => request('POST', '/api/v1/auth/login', { email, password }),
+  logout: () => request('POST', '/api/v1/auth/logout', {}),
   register: (data) => request('POST', '/api/v1/auth/register', data),
   forgotPassword: (email) => request('POST', '/api/v1/auth/forgot-password', { email }),
   resetPassword: (token, newPassword) =>
