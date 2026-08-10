@@ -11,10 +11,21 @@ export function AuthProvider({ children }) {
     const token = getToken();
     if (!token) return;
 
-    // Always verify token validity on app start
-    api.getDashboard()
-      .then(() => {
-        setUserState(getUser());
+    // Always verify the token and refresh role/platform permissions on app start.
+    api.me()
+      .then((data) => {
+        const stored = getUser() || {};
+        const fresh = {
+          ...stored,
+          id: data.user?.id || stored.id,
+          email: data.user?.email || stored.email,
+          name: data.user?.display_name || stored.name,
+          organization_id: data.user?.organization_id || data.organization?.id || stored.organization_id,
+          role: data.user?.role || stored.role,
+          is_platform_admin: Boolean(data.user?.is_platform_admin),
+        };
+        setUser(fresh);
+        setUserState(fresh);
       })
       .catch(() => {
         clearToken();
@@ -35,6 +46,7 @@ export function AuthProvider({ children }) {
       name: data.user?.display_name || data.name || email.split('@')[0],
       organization_id: data.user?.organization_id || data.organization_id,
       role: data.user?.role || data.role,
+      is_platform_admin: Boolean(data.user?.is_platform_admin),
     };
     setUser(userData);
     setUserState(userData);
@@ -53,6 +65,7 @@ export function AuthProvider({ children }) {
       name: data.user?.display_name || data.user?.name || formData.display_name || formData.name || formData.email.split('@')[0],
       organization_id: data.user?.organization_id || data.organization?.id || data.organization_id,
       role: data.user?.role || 'admin',
+      is_platform_admin: Boolean(data.user?.is_platform_admin),
     };
     setUser(userData);
     setUserState(userData);
