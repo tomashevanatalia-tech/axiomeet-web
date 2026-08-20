@@ -140,6 +140,7 @@ const api = {
   // OAuth
   getZoomAuthUrl: (orgId) => `${API_BASE}/oauth/zoom/authorize?org_id=${orgId}`,
   getZoomConnectUrl: () => request('POST', '/api/v1/admin/zoom/authorize-url', {}),
+  getTelegramConnectUrl: () => request('POST', '/api/v1/admin/telegram/authorize-url', {}),
   getYandexAuthUrl: (orgId) => `${API_BASE}/oauth/yandex/authorize?org_id=${orgId}`,
   getZoomStatus: (orgId) => request('GET', `/oauth/zoom/status?org_id=${orgId}`),
   getYandexStatus: (orgId) => request('GET', `/oauth/yandex/status?org_id=${orgId}`),

@@ -113,9 +113,24 @@ export default function AdminSettingsPage() {
     setBusy('zoom-connect');
     try {
       const result = await api.getZoomConnectUrl();
-      window.location.href = result.authorization_url || result.auth_url || result.url;
+      const authorizationUrl = result.authorization_url || result.auth_url || result.url;
+      if (!authorizationUrl) throw new Error('Сервер не вернул ссылку авторизации Zoom');
+      window.location.assign(authorizationUrl);
     } catch (err) {
       showMessage(err.message || 'Не удалось начать подключение Zoom', 'error');
+      setBusy('');
+    }
+  };
+
+  const connectTelegram = async () => {
+    setBusy('telegram-connect');
+    try {
+      const result = await api.getTelegramConnectUrl();
+      const authorizationUrl = result.authorization_url || result.bot_url || result.url;
+      if (!authorizationUrl) throw new Error('Сервер не вернул ссылку подключения Telegram');
+      window.location.assign(authorizationUrl);
+    } catch (err) {
+      showMessage(err.message || 'Не удалось начать подключение Telegram', 'error');
       setBusy('');
     }
   };
@@ -252,7 +267,17 @@ export default function AdminSettingsPage() {
           />
           <div className="drive-folder-editor"><input className="form-input" value={driveFolder} onChange={(event) => setDriveFolder(event.target.value)} placeholder="ID папки или ссылка Google Drive" /><button className="btn btn-primary" onClick={saveDriveFolder} disabled={!driveFolder.trim() || busy === 'drive-save'}><Save size={14} /> Сохранить папку</button></div>
 
-          <ConnectionShell icon={Bot} color="#229ED9" title="Telegram" subtitle="Уведомления и команды бота" status={connections.telegram?.status || 'disconnected'} meta={connections.telegram?.bot_username || 'Бот не настроен для организации'} actions={connections.telegram?.bot_url && <a className="btn btn-secondary btn-sm" href={connections.telegram.bot_url} target="_blank" rel="noreferrer"><ExternalLink size={14} /> Открыть бота</a>} />
+          <ConnectionShell
+            icon={Bot}
+            color="#229ED9"
+            title="Telegram"
+            subtitle="Уведомления и команды бота"
+            status={connections.telegram?.status || 'disconnected'}
+            meta={connections.telegram?.bot_username || 'Telegram ещё не привязан к организации'}
+            actions={connections.telegram?.status === 'active' && connections.telegram?.bot_url
+              ? <a className="btn btn-secondary btn-sm" href={connections.telegram.bot_url} target="_blank" rel="noreferrer"><ExternalLink size={14} /> Открыть бота</a>
+              : <button className="btn btn-secondary btn-sm" onClick={connectTelegram} disabled={busy === 'telegram-connect'}>{busy === 'telegram-connect' ? <Loader2 size={14} className="spinning" /> : <Bot size={14} />} Подключить Telegram</button>}
+          />
         </div>
       </div>
 
