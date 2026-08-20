@@ -10,7 +10,7 @@ import {
 
 const STEPS = [
   { key: 'verify_email', title: 'Подтвердите email', icon: Mail, desc: 'Защитим аккаунт и отправим результаты на верный адрес' },
-  { key: 'connect_zoom', title: 'Подключите Zoom', icon: Video, desc: 'Через официальный OAuth — без передачи паролей и секретов' },
+  { key: 'connect_zoom', title: 'Подключите Zoom', icon: Video, desc: 'По реквизитам Server-to-Server OAuth из Zoom Marketplace' },
   { key: 'choose_template', title: 'Выберите шаблон', icon: FileText, desc: 'Настройте структуру будущих протоколов' },
   { key: 'first_result', title: 'Получите первый результат', icon: PartyPopper, desc: 'Обработаем демо-запись прямо сейчас' },
 ];
@@ -171,11 +171,11 @@ export default function OnboardingPage() {
   };
 
   const connectZoom = () => {
-    if (!user?.organization_id) {
-      setError('Не найден идентификатор организации. Обновите страницу.');
+    if (!['owner', 'admin'].includes(user?.role)) {
+      setError('Подключить Zoom может владелец или администратор организации.');
       return;
     }
-    window.location.href = api.getZoomAuthUrl(user.organization_id);
+    navigate('/admin/settings?zoom_setup=1&return_to=%2Fonboarding');
   };
 
   const deferZoom = () => {
@@ -252,7 +252,7 @@ export default function OnboardingPage() {
         <>
           <div style={{ background: 'var(--bg-content)', borderRadius: 'var(--radius-md)', padding: 16, marginBottom: 18 }}>
             <p style={{ color: 'var(--text-secondary)', margin: 0 }}>
-              Нажмите кнопку, войдите в Zoom и разрешите доступ. AxioMeet не просит Client Secret, пароль или Secret Token. Подключение можно отозвать в Zoom.
+              В форме подключения введите Account ID, Client ID и Client Secret приложения Server-to-Server OAuth из Zoom Marketplace. AxioMeet проверит реквизиты перед сохранением.
             </p>
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
