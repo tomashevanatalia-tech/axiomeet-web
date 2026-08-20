@@ -40,7 +40,13 @@ export default function AdminSettingsPage() {
     const returnTo = new URLSearchParams(window.location.search).get('return_to');
     return returnTo === '/onboarding' ? returnTo : '';
   });
-  const [zoomCredentials, setZoomCredentials] = useState({ label: '', account_id: '', client_id: '', client_secret: '' });
+  const [zoomCredentials, setZoomCredentials] = useState({
+    label: '',
+    account_id: '',
+    client_id: '',
+    client_secret: '',
+    drive_folder_id: '',
+  });
   const [zoomFolderEditorId, setZoomFolderEditorId] = useState(null);
   const [zoomFolderDraft, setZoomFolderDraft] = useState('');
   const [apiKeys, setApiKeys] = useState([]);
@@ -142,9 +148,10 @@ export default function AdminSettingsPage() {
         account_id: zoomCredentials.account_id.trim(),
         client_id: zoomCredentials.client_id.trim(),
         client_secret: zoomCredentials.client_secret.trim(),
+        drive_folder_id: zoomCredentials.drive_folder_id.trim(),
       });
       showMessage(result.message || 'Zoom подключён и проверен');
-      setZoomCredentials({ label: '', account_id: '', client_id: '', client_secret: '' });
+      setZoomCredentials({ label: '', account_id: '', client_id: '', client_secret: '', drive_folder_id: '' });
       setZoomFormOpen(false);
       await load();
       if (zoomReturnTo) window.location.assign(zoomReturnTo);
@@ -345,6 +352,11 @@ export default function AdminSettingsPage() {
                 <label className="form-group"><span className="form-label">Account ID</span><input className="form-input" value={zoomCredentials.account_id} onChange={(event) => setZoomCredentials({ ...zoomCredentials, account_id: event.target.value })} autoComplete="off" maxLength={255} required /></label>
                 <label className="form-group"><span className="form-label">Client ID</span><input className="form-input" value={zoomCredentials.client_id} onChange={(event) => setZoomCredentials({ ...zoomCredentials, client_id: event.target.value })} autoComplete="off" maxLength={255} required /></label>
                 <label className="form-group"><span className="form-label">Client Secret</span><input className="form-input" type="password" value={zoomCredentials.client_secret} onChange={(event) => setZoomCredentials({ ...zoomCredentials, client_secret: event.target.value })} autoComplete="new-password" maxLength={255} required /></label>
+                <label className="form-group zoom-create-folder-field">
+                  <span className="form-label">Папка Google Drive <span className="form-label-optional">(необязательно)</span></span>
+                  <input className="form-input" value={zoomCredentials.drive_folder_id} onChange={(event) => setZoomCredentials({ ...zoomCredentials, drive_folder_id: event.target.value })} placeholder="ID папки или ссылка Google Drive" maxLength={1000} />
+                  <span className="zoom-create-folder-hint">Если оставить поле пустым, встречи из этого Zoom будут сохраняться в общую папку организации.</span>
+                </label>
               </div>
               <div className="zoom-credentials-actions">
                 <button type="submit" className="btn btn-primary" disabled={busy === 'zoom-create' || !zoomCredentials.account_id.trim() || !zoomCredentials.client_id.trim() || !zoomCredentials.client_secret.trim()}>{busy === 'zoom-create' ? <Loader2 size={15} className="spinning" /> : <Video size={15} />} Проверить и подключить</button>
