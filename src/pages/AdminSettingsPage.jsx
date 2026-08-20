@@ -1,4 +1,4 @@
-import { createElement, useCallback, useEffect, useState } from 'react';
+import { createElement, Fragment, useCallback, useEffect, useState } from 'react';
 import api from '../api';
 import PageHeader from '../components/PageHeader';
 import {
@@ -41,6 +41,8 @@ export default function AdminSettingsPage() {
     return returnTo === '/onboarding' ? returnTo : '';
   });
   const [zoomCredentials, setZoomCredentials] = useState({ label: '', account_id: '', client_id: '', client_secret: '' });
+  const [zoomFolderEditorId, setZoomFolderEditorId] = useState(null);
+  const [zoomFolderDraft, setZoomFolderDraft] = useState('');
   const [apiKeys, setApiKeys] = useState([]);
   const [driveFolder, setDriveFolder] = useState('');
   const [newKeyName, setNewKeyName] = useState('');
@@ -193,6 +195,32 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const openZoomFolderEditor = (account) => {
+    setZoomFolderEditorId(account.id);
+    setZoomFolderDraft(account.drive_folder_id || '');
+  };
+
+  const saveZoomDriveFolder = async (account, useDefault = false) => {
+    const folderId = useDefault ? null : zoomFolderDraft.trim();
+    if (!useDefault && !folderId) return;
+    setBusy(`zoom-drive-${account.id}`);
+    try {
+      const result = await api.updateZoomDriveFolder(account.id, folderId);
+      showMessage(
+        result.drive_folder_mode === 'custom'
+          ? `Для Zoom «${account.label}» сохранена отдельная папка ${result.drive_folder_name || ''}`.trim()
+          : `Zoom «${account.label}» будет использовать общую папку организации`,
+      );
+      setZoomFolderEditorId(null);
+      setZoomFolderDraft('');
+      await load();
+    } catch (err) {
+      showMessage(err.message || 'Не удалось сохранить папку для Zoom', 'error');
+    } finally {
+      setBusy('');
+    }
+  };
+
   const testDrive = async () => {
     setBusy('drive-test');
     try {
@@ -273,18 +301,38 @@ export default function AdminSettingsPage() {
       <div className="card settings-section">
         <div className="card-header"><h3 className="card-title"><Link2 size={17} /> Подключения</h3><span className="badge badge-info">{connections.zoom_accounts.length} Zoom</span></div>
         <div className="connections-stack">
-          {connections.zoom_accounts.map((account) => (
-            <ConnectionShell
-              key={account.id}
-              icon={Video}
-              color="#2D8CFF"
-              title={account.label || `Zoom ${account.id}`}
-              subtitle={`Zoom · ${account.auth_type === 'oauth' ? 'OAuth' : 'Server-to-Server'}`}
-              status={account.status}
-              meta={`${account.meetings_count || 0} встреч · последняя проверка ${account.last_check_at ? new Date(account.last_check_at).toLocaleString('ru-RU') : 'ещё не выполнялась'}${account.last_error ? ` · ${account.last_error}` : ''}`}
-              actions={<><button className="btn btn-secondary btn-sm" onClick={() => testZoom(account)} disabled={busy === `zoom-test-${account.id}`}>Проверить</button><button className="btn btn-ghost btn-sm danger" onClick={() => disconnectZoom(account)} disabled={busy === `zoom-delete-${account.id}`}><Trash2 size={14} /> Отключить</button></>}
-            />
-          ))}
+          {connections.zoom_accounts.map((account) => {
+            const folderLabel = account.drive_folder_id
+              ? `отдельная папка: ${account.drive_folder_name || account.drive_folder_id}`
+              : connections.google_drive?.folder_id
+                ? `общая папка: ${connections.google_drive.folder_name || connections.google_drive.folder_id}`
+                : 'папка Google Drive не настроена';
+            return (
+              <Fragment key={account.id}>
+                <ConnectionShell
+                  icon={Video}
+                  color="#2D8CFF"
+                  title={account.label || `Zoom ${account.id}`}
+                  subtitle={`Zoom · ${account.auth_type === 'oauth' ? 'OAuth' : 'Server-to-Server'} · ${folderLabel}`}
+                  status={account.status}
+                  meta={`${account.meetings_count || 0} встреч · последняя проверка ${account.last_check_at ? new Date(account.last_check_at).toLocaleString('ru-RU') : 'ещё не выполнялась'}${account.last_error ? ` · ${account.last_error}` : ''}`}
+                  actions={<><button className="btn btn-secondary btn-sm" onClick={() => openZoomFolderEditor(account)}><HardDrive size={14} /> Папка</button><button className="btn btn-secondary btn-sm" onClick={() => testZoom(account)} disabled={busy === `zoom-test-${account.id}`}>Проверить</button><button className="btn btn-ghost btn-sm danger" onClick={() => disconnectZoom(account)} disabled={busy === `zoom-delete-${account.id}`}><Trash2 size={14} /> Отключить</button></>}
+                />
+                {zoomFolderEditorId === account.id && (
+                  <div className="drive-folder-editor zoom-drive-folder-editor">
+                    <div className="zoom-drive-folder-copy">
+                      <strong>Куда сохранять встречи из «{account.label || `Zoom ${account.id}`}»</strong>
+                      <span>Укажите отдельную папку Google Drive или оставьте общую папку организации.</span>
+                    </div>
+                    <input className="form-input" value={zoomFolderDraft} onChange={(event) => setZoomFolderDraft(event.target.value)} placeholder="ID папки или ссылка Google Drive" />
+                    <button className="btn btn-primary" onClick={() => saveZoomDriveFolder(account)} disabled={!zoomFolderDraft.trim() || busy === `zoom-drive-${account.id}`}><Save size={14} /> Сохранить отдельную</button>
+                    {account.drive_folder_id && <button className="btn btn-secondary" onClick={() => saveZoomDriveFolder(account, true)} disabled={busy === `zoom-drive-${account.id}`}>Использовать общую</button>}
+                    <button className="btn btn-ghost" onClick={() => setZoomFolderEditorId(null)} disabled={busy === `zoom-drive-${account.id}`}>Отмена</button>
+                  </div>
+                )}
+              </Fragment>
+            );
+          })}
           <button type="button" className="connection-add" onClick={() => setZoomFormOpen((open) => !open)} disabled={connections.zoom_accounts.length >= 5}><Plus size={17} /> {connections.zoom_accounts.length ? 'Подключить ещё один Zoom' : 'Подключить Zoom'}<span>{connections.zoom_accounts.length}/5</span></button>
           {zoomFormOpen && (
             <form className="zoom-credentials-editor" onSubmit={connectZoomWithCredentials}>
@@ -309,13 +357,13 @@ export default function AdminSettingsPage() {
           <ConnectionShell
             icon={HardDrive}
             color="#34A853"
-            title="Google Drive"
-            subtitle="Каноническое хранение протоколов, транскриптов и записей"
+            title="Общая папка Google Drive"
+            subtitle="Используется для всех Zoom-аккаунтов, которым не назначена отдельная папка"
             status={connections.google_drive?.status || 'disconnected'}
             meta={connections.google_drive?.folder_name || (connections.google_drive?.folder_id ? `Папка ${connections.google_drive.folder_id}` : 'Папка не выбрана')}
             actions={<>{connections.google_drive?.folder_url && <a className="btn btn-secondary btn-sm" href={connections.google_drive.folder_url} target="_blank" rel="noreferrer"><ExternalLink size={14} /> Открыть</a>}<button className="btn btn-secondary btn-sm" onClick={testDrive} disabled={busy === 'drive-test'}>Проверить</button></>}
           />
-          <div className="drive-folder-editor"><input className="form-input" value={driveFolder} onChange={(event) => setDriveFolder(event.target.value)} placeholder="ID папки или ссылка Google Drive" /><button className="btn btn-primary" onClick={saveDriveFolder} disabled={!driveFolder.trim() || busy === 'drive-save'}><Save size={14} /> Сохранить папку</button></div>
+          <div className="drive-folder-editor"><input className="form-input" value={driveFolder} onChange={(event) => setDriveFolder(event.target.value)} placeholder="ID общей папки или ссылка Google Drive" /><button className="btn btn-primary" onClick={saveDriveFolder} disabled={!driveFolder.trim() || busy === 'drive-save'}><Save size={14} /> Сохранить общую папку</button></div>
 
           <ConnectionShell
             icon={Bot}
