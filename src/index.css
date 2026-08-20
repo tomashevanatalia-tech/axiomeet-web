@@ -1918,6 +1918,9 @@ select.form-input { appearance: auto; cursor: pointer; }
 .zoom-credentials-copy { display: flex; flex-direction: column; gap: 4px; }
 .zoom-credentials-copy span { color: var(--text-secondary); font-size: var(--font-sm); }
 .zoom-credentials-actions { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+.zoom-create-folder-field { grid-column: 1 / -1; }
+.form-label-optional { color: var(--text-muted); font-weight: 500; }
+.zoom-create-folder-hint { color: var(--text-muted); font-size: var(--font-xs); line-height: 1.4; }
 .drive-folder-editor, .api-key-create { display: flex; gap: 9px; padding: 4px 0 8px 51px; }
 .zoom-drive-folder-editor { align-items: center; flex-wrap: wrap; padding-top: 0; }
 .zoom-drive-folder-copy { display: flex; flex: 1 0 100%; flex-direction: column; gap: 3px; }
