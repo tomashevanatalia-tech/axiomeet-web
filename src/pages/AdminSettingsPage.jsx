@@ -33,7 +33,13 @@ function ConnectionShell({ icon, color, title, subtitle, status, meta, actions }
 export default function AdminSettingsPage() {
   const [org, setOrg] = useState({ name: '', email: '', webhook_url: '', language: 'ru', timezone: 'Europe/Moscow' });
   const [connections, setConnections] = useState({ zoom_accounts: [], zoom_oauth_available: false, google_drive: null, telegram: null, others: [] });
-  const [zoomFormOpen, setZoomFormOpen] = useState(false);
+  const [zoomFormOpen, setZoomFormOpen] = useState(
+    () => new URLSearchParams(window.location.search).get('zoom_setup') === '1',
+  );
+  const [zoomReturnTo] = useState(() => {
+    const returnTo = new URLSearchParams(window.location.search).get('return_to');
+    return returnTo === '/onboarding' ? returnTo : '';
+  });
   const [zoomCredentials, setZoomCredentials] = useState({ label: '', account_id: '', client_id: '', client_secret: '' });
   const [apiKeys, setApiKeys] = useState([]);
   const [driveFolder, setDriveFolder] = useState('');
@@ -88,7 +94,7 @@ export default function AdminSettingsPage() {
     } else if (zoomResult === 'error') {
       setMessage({ text: `Zoom не подключён: ${params.get('reason') || 'авторизация не завершена'}`, type: 'error' });
     }
-    if (zoomResult) {
+    if (zoomResult || params.has('zoom_setup') || params.has('return_to')) {
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, [load]);
@@ -139,6 +145,7 @@ export default function AdminSettingsPage() {
       setZoomCredentials({ label: '', account_id: '', client_id: '', client_secret: '' });
       setZoomFormOpen(false);
       await load();
+      if (zoomReturnTo) window.location.assign(zoomReturnTo);
     } catch (err) {
       showMessage(err.message || 'Не удалось подключить Zoom', 'error');
     } finally {
