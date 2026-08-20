@@ -153,6 +153,7 @@ const api = {
   getAdminConnections: () => request('GET', '/api/v1/admin/connections'),
   createZoomAccount: (payload) => request('POST', '/api/v1/admin/zoom-accounts', payload),
   testZoomAccount: (accountId) => request('POST', `/api/v1/admin/zoom-accounts/${accountId}/test`, {}),
+  updateZoomDriveFolder: (accountId, folderId) => request('PATCH', `/api/v1/admin/zoom-accounts/${accountId}/drive-folder`, { folder_id: folderId }),
   disconnectZoomAccount: (accountId) => request('DELETE', `/api/v1/admin/zoom-accounts/${accountId}`),
   testGoogleDrive: () => request('POST', '/api/v1/admin/connections/google-drive/test', {}),
   updateGoogleDriveFolder: (folderId) => request('PATCH', '/api/v1/admin/connections/google-drive', { folder_id: folderId }),
