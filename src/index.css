@@ -1914,6 +1914,10 @@ select.form-input { appearance: auto; cursor: pointer; }
 .connection-add { width: 100%; display: flex; align-items: center; gap: 8px; padding: 12px 14px; border: 1px dashed var(--primary-300); border-radius: var(--radius-md); background: var(--primary-50); color: var(--primary-700); font-weight: 600; }
 .connection-add:hover { background: var(--primary-100); }
 .connection-add span { margin-left: auto; font-size: var(--font-xs); color: var(--text-muted); }
+.zoom-credentials-editor { display: flex; flex-direction: column; gap: 15px; padding: 16px; border: 1px solid var(--primary-200); border-radius: var(--radius-md); background: var(--primary-50); }
+.zoom-credentials-copy { display: flex; flex-direction: column; gap: 4px; }
+.zoom-credentials-copy span { color: var(--text-secondary); font-size: var(--font-sm); }
+.zoom-credentials-actions { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
 .drive-folder-editor, .api-key-create { display: flex; gap: 9px; padding: 4px 0 8px 51px; }
 .created-key { display: flex; align-items: flex-start; gap: 10px; padding: 12px; margin-bottom: 14px; border: 1px solid #fde68a; background: var(--warning-bg); border-radius: var(--radius-md); color: var(--warning-text); }
 .created-key > div { flex: 1; min-width: 0; }
