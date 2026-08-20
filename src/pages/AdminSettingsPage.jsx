@@ -32,7 +32,9 @@ function ConnectionShell({ icon, color, title, subtitle, status, meta, actions }
 
 export default function AdminSettingsPage() {
   const [org, setOrg] = useState({ name: '', email: '', webhook_url: '', language: 'ru', timezone: 'Europe/Moscow' });
-  const [connections, setConnections] = useState({ zoom_accounts: [], google_drive: null, telegram: null, others: [] });
+  const [connections, setConnections] = useState({ zoom_accounts: [], zoom_oauth_available: false, google_drive: null, telegram: null, others: [] });
+  const [zoomFormOpen, setZoomFormOpen] = useState(false);
+  const [zoomCredentials, setZoomCredentials] = useState({ label: '', account_id: '', client_id: '', client_secret: '' });
   const [apiKeys, setApiKeys] = useState([]);
   const [driveFolder, setDriveFolder] = useState('');
   const [newKeyName, setNewKeyName] = useState('');
@@ -64,6 +66,7 @@ export default function AdminSettingsPage() {
       setApiKeys(keysData.api_keys || keysData.keys || []);
       setConnections({
         zoom_accounts: connectionsData.zoom_accounts || [],
+        zoom_oauth_available: connectionsData.zoom_oauth_available === true,
         google_drive: connectionsData.google_drive || null,
         telegram: connectionsData.telegram || null,
         others: connectionsData.other_connections || [],
@@ -109,8 +112,8 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const connectZoom = async () => {
-    setBusy('zoom-connect');
+  const connectZoomOAuth = async () => {
+    setBusy('zoom-oauth');
     try {
       const result = await api.getZoomConnectUrl();
       const authorizationUrl = result.authorization_url || result.auth_url || result.url;
@@ -118,6 +121,27 @@ export default function AdminSettingsPage() {
       window.location.assign(authorizationUrl);
     } catch (err) {
       showMessage(err.message || 'Не удалось начать подключение Zoom', 'error');
+      setBusy('');
+    }
+  };
+
+  const connectZoomWithCredentials = async (event) => {
+    event.preventDefault();
+    setBusy('zoom-create');
+    try {
+      const result = await api.createZoomAccount({
+        label: zoomCredentials.label.trim(),
+        account_id: zoomCredentials.account_id.trim(),
+        client_id: zoomCredentials.client_id.trim(),
+        client_secret: zoomCredentials.client_secret.trim(),
+      });
+      showMessage(result.message || 'Zoom подключён и проверен');
+      setZoomCredentials({ label: '', account_id: '', client_id: '', client_secret: '' });
+      setZoomFormOpen(false);
+      await load();
+    } catch (err) {
+      showMessage(err.message || 'Не удалось подключить Zoom', 'error');
+    } finally {
       setBusy('');
     }
   };
@@ -254,7 +278,26 @@ export default function AdminSettingsPage() {
               actions={<><button className="btn btn-secondary btn-sm" onClick={() => testZoom(account)} disabled={busy === `zoom-test-${account.id}`}>Проверить</button><button className="btn btn-ghost btn-sm danger" onClick={() => disconnectZoom(account)} disabled={busy === `zoom-delete-${account.id}`}><Trash2 size={14} /> Отключить</button></>}
             />
           ))}
-          <button className="connection-add" onClick={connectZoom} disabled={busy === 'zoom-connect' || connections.zoom_accounts.length >= 5}><Plus size={17} /> {connections.zoom_accounts.length ? 'Подключить ещё один Zoom' : 'Подключить Zoom'}<span>{connections.zoom_accounts.length}/5</span></button>
+          <button type="button" className="connection-add" onClick={() => setZoomFormOpen((open) => !open)} disabled={connections.zoom_accounts.length >= 5}><Plus size={17} /> {connections.zoom_accounts.length ? 'Подключить ещё один Zoom' : 'Подключить Zoom'}<span>{connections.zoom_accounts.length}/5</span></button>
+          {zoomFormOpen && (
+            <form className="zoom-credentials-editor" onSubmit={connectZoomWithCredentials}>
+              <div className="zoom-credentials-copy">
+                <strong>Реквизиты Zoom Server-to-Server OAuth</strong>
+                <span>Введите данные приложения из Zoom Marketplace. Перед сохранением AxioMeet проверит доступ и не покажет Client Secret повторно.</span>
+              </div>
+              <div className="settings-form-grid">
+                <label className="form-group"><span className="form-label">Название подключения</span><input className="form-input" value={zoomCredentials.label} onChange={(event) => setZoomCredentials({ ...zoomCredentials, label: event.target.value })} placeholder="Например, Zoom IT-команды" maxLength={255} /></label>
+                <label className="form-group"><span className="form-label">Account ID</span><input className="form-input" value={zoomCredentials.account_id} onChange={(event) => setZoomCredentials({ ...zoomCredentials, account_id: event.target.value })} autoComplete="off" maxLength={255} required /></label>
+                <label className="form-group"><span className="form-label">Client ID</span><input className="form-input" value={zoomCredentials.client_id} onChange={(event) => setZoomCredentials({ ...zoomCredentials, client_id: event.target.value })} autoComplete="off" maxLength={255} required /></label>
+                <label className="form-group"><span className="form-label">Client Secret</span><input className="form-input" type="password" value={zoomCredentials.client_secret} onChange={(event) => setZoomCredentials({ ...zoomCredentials, client_secret: event.target.value })} autoComplete="new-password" maxLength={255} required /></label>
+              </div>
+              <div className="zoom-credentials-actions">
+                <button type="submit" className="btn btn-primary" disabled={busy === 'zoom-create' || !zoomCredentials.account_id.trim() || !zoomCredentials.client_id.trim() || !zoomCredentials.client_secret.trim()}>{busy === 'zoom-create' ? <Loader2 size={15} className="spinning" /> : <Video size={15} />} Проверить и подключить</button>
+                {connections.zoom_oauth_available && <button type="button" className="btn btn-secondary" onClick={connectZoomOAuth} disabled={busy === 'zoom-oauth'}>{busy === 'zoom-oauth' ? <Loader2 size={15} className="spinning" /> : <ExternalLink size={15} />} Войти через Zoom</button>}
+                <button type="button" className="btn btn-ghost" onClick={() => setZoomFormOpen(false)} disabled={busy === 'zoom-create' || busy === 'zoom-oauth'}>Отмена</button>
+              </div>
+            </form>
+          )}
 
           <ConnectionShell
             icon={HardDrive}

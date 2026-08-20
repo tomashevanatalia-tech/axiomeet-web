@@ -151,6 +151,7 @@ const api = {
   getAdminSettings: () => request('GET', '/api/v1/admin/settings'),
   updateAdminSettings: (payload) => request('PUT', '/api/v1/admin/settings', payload),
   getAdminConnections: () => request('GET', '/api/v1/admin/connections'),
+  createZoomAccount: (payload) => request('POST', '/api/v1/admin/zoom-accounts', payload),
   testZoomAccount: (accountId) => request('POST', `/api/v1/admin/zoom-accounts/${accountId}/test`, {}),
   disconnectZoomAccount: (accountId) => request('DELETE', `/api/v1/admin/zoom-accounts/${accountId}`),
   testGoogleDrive: () => request('POST', '/api/v1/admin/connections/google-drive/test', {}),
