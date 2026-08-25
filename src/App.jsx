@@ -16,6 +16,7 @@ import AdminUsersPage from './pages/AdminUsersPage';
 import AdminBillingPage from './pages/AdminBillingPage';
 import AdminAnalyticsPage from './pages/AdminAnalyticsPage';
 import AdminSettingsPage from './pages/AdminSettingsPage';
+import ZoomSetupGuidePage from './pages/ZoomSetupGuidePage';
 import PlatformOverviewPage from './pages/PlatformOverviewPage';
 import './index.css';
 
@@ -72,6 +73,7 @@ function AppRoutes() {
         <Route path="/admin/billing" element={<AdminRoute><AdminBillingPage /></AdminRoute>} />
         <Route path="/admin/analytics" element={<AdminRoute><AdminAnalyticsPage /></AdminRoute>} />
         <Route path="/admin/settings" element={<AdminRoute><AdminSettingsPage /></AdminRoute>} />
+        <Route path="/admin/settings/zoom-guide" element={<AdminRoute><ZoomSetupGuidePage /></AdminRoute>} />
       </Route>
 
       {/* Fallback */}

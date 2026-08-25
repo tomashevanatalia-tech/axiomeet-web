@@ -1,8 +1,9 @@
 import { createElement, Fragment, useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../api';
 import PageHeader from '../components/PageHeader';
 import {
-  AlertCircle, Bot, Building2, CheckCircle2, Copy, ExternalLink, HardDrive,
+  AlertCircle, BookOpen, Bot, Building2, CheckCircle2, Copy, ExternalLink, HardDrive,
   Key, Link2, Loader2, Plus, RefreshCw, Save, Trash2, Video, XCircle,
 } from 'lucide-react';
 
@@ -339,7 +340,13 @@ export default function AdminSettingsPage() {
       </div>
 
       <div className="card settings-section">
-        <div className="card-header"><h3 className="card-title"><Link2 size={17} /> Подключения</h3><span className={`badge ${loadErrors.connections ? 'badge-warning' : 'badge-info'}`}>{loadErrors.connections ? 'Не загружено' : `${connections.zoom_accounts.length} Zoom`}</span></div>
+        <div className="card-header">
+          <h3 className="card-title"><Link2 size={17} /> Подключения</h3>
+          <div className="settings-header-actions">
+            <Link className="btn btn-secondary btn-sm" to="/admin/settings/zoom-guide"><BookOpen size={14} /> Инструкция по Zoom</Link>
+            <span className={`badge ${loadErrors.connections ? 'badge-warning' : 'badge-info'}`}>{loadErrors.connections ? 'Не загружено' : `${connections.zoom_accounts.length} Zoom`}</span>
+          </div>
+        </div>
         <div className="connections-stack">
           {connections.zoom_accounts.map((account) => {
             const folderLabel = account.drive_folder_id
@@ -379,6 +386,7 @@ export default function AdminSettingsPage() {
               <div className="zoom-credentials-copy">
                 <strong>Реквизиты Zoom Server-to-Server OAuth</strong>
                 <span>Введите данные приложения из Zoom Marketplace. Перед сохранением AxioMeet проверит доступ и не покажет Client Secret повторно.</span>
+                <Link className="zoom-inline-guide" to="/admin/settings/zoom-guide"><BookOpen size={14} /> Как правильно настроить Cloud Recording, права и scopes</Link>
               </div>
               <div className="settings-form-grid">
                 <label className="form-group"><span className="form-label">Название подключения</span><input className="form-input" value={zoomCredentials.label} onChange={(event) => setZoomCredentials({ ...zoomCredentials, label: event.target.value })} placeholder="Например, Zoom IT-команды" maxLength={255} /></label>
