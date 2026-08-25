@@ -56,6 +56,8 @@ export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState('');
   const [message, setMessage] = useState(null);
+  const [loadErrors, setLoadErrors] = useState({});
+  const [loadNotice, setLoadNotice] = useState('');
 
   const showMessage = (text, type = 'success') => {
     setMessage({ text, type });
@@ -65,29 +67,59 @@ export default function AdminSettingsPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [settingsData, keysData, connectionsData] = await Promise.all([
+      const [settingsResult, keysResult, connectionsResult] = await Promise.allSettled([
         api.getAdminSettings(),
-        api.get('/api/v1/admin/api-keys').catch(() => ({ api_keys: [] })),
+        api.get('/api/v1/admin/api-keys'),
         api.getAdminConnections(),
       ]);
-      setOrg({
-        name: settingsData.organization_name || settingsData.name || '',
-        email: settingsData.contact_email || settingsData.email || '',
-        webhook_url: settingsData.webhook_url || '',
-        language: settingsData.language || 'ru',
-        timezone: settingsData.timezone || 'Europe/Moscow',
-      });
-      setApiKeys(keysData.api_keys || keysData.keys || []);
-      setConnections({
-        zoom_accounts: connectionsData.zoom_accounts || [],
-        zoom_oauth_available: connectionsData.zoom_oauth_available === true,
-        google_drive: connectionsData.google_drive || null,
-        telegram: connectionsData.telegram || null,
-        others: connectionsData.other_connections || [],
-      });
-      setDriveFolder(connectionsData.google_drive?.folder_id || '');
-    } catch (err) {
-      showMessage(err.message || 'Не удалось загрузить настройки', 'error');
+      const errors = {};
+
+      if (settingsResult.status === 'fulfilled') {
+        const settingsData = settingsResult.value;
+        setOrg({
+          name: settingsData.organization_name || settingsData.name || '',
+          email: settingsData.contact_email || settingsData.email || '',
+          webhook_url: settingsData.webhook_url || '',
+          language: settingsData.language || 'ru',
+          timezone: settingsData.timezone || 'Europe/Moscow',
+        });
+      } else {
+        errors.settings = settingsResult.reason?.message || 'ошибка загрузки';
+      }
+
+      if (keysResult.status === 'fulfilled') {
+        const keysData = keysResult.value;
+        setApiKeys(keysData.api_keys || keysData.keys || []);
+      } else {
+        errors.apiKeys = keysResult.reason?.message || 'ошибка загрузки';
+      }
+
+      if (connectionsResult.status === 'fulfilled') {
+        const connectionsData = connectionsResult.value;
+        setConnections({
+          zoom_accounts: connectionsData.zoom_accounts || [],
+          zoom_oauth_available: connectionsData.zoom_oauth_available === true,
+          google_drive: connectionsData.google_drive || null,
+          telegram: connectionsData.telegram || null,
+          others: connectionsData.other_connections || [],
+        });
+        setDriveFolder(connectionsData.google_drive?.folder_id || '');
+      } else {
+        errors.connections = connectionsResult.reason?.message || 'ошибка загрузки';
+      }
+
+      setLoadErrors(errors);
+      const failedSections = [
+        errors.settings && 'организация',
+        errors.connections && 'подключения',
+        errors.apiKeys && 'API-ключи',
+      ].filter(Boolean);
+      const firstError = Object.values(errors)[0];
+      setLoadNotice(
+        failedSections.length
+          ? `Не удалось загрузить: ${failedSections.join(', ')}${firstError ? ` — ${firstError}` : ''}. Существующие данные не удалены.`
+          : '',
+      );
     } finally {
       setLoading(false);
     }
@@ -291,22 +323,23 @@ export default function AdminSettingsPage() {
         <button className="btn btn-secondary btn-sm" onClick={load}><RefreshCw size={14} /> Обновить</button>
       </PageHeader>
 
+      {loadNotice && <div className="workspace-notice workspace-notice-error">{loadNotice}</div>}
       {message && <div className={`workspace-notice workspace-notice-${message.type}`}>{message.text}</div>}
 
       <div className="card settings-section">
-        <div className="card-header"><h3 className="card-title"><Building2 size={17} /> Организация</h3></div>
+        <div className="card-header"><h3 className="card-title"><Building2 size={17} /> Организация</h3>{loadErrors.settings && <span className="badge badge-warning">Не загружено</span>}</div>
         <form onSubmit={saveSettings} className="settings-form-grid">
           <label className="form-group"><span className="form-label">Название организации</span><input className="form-input" value={org.name} onChange={(event) => setOrg({ ...org, name: event.target.value })} /></label>
           <label className="form-group"><span className="form-label">Контактный email</span><input className="form-input" type="email" value={org.email} onChange={(event) => setOrg({ ...org, email: event.target.value })} /></label>
           <label className="form-group"><span className="form-label">Webhook URL</span><input className="form-input" value={org.webhook_url} onChange={(event) => setOrg({ ...org, webhook_url: event.target.value })} placeholder="https://…" /></label>
           <label className="form-group"><span className="form-label">Язык протоколов</span><select className="form-input" value={org.language} onChange={(event) => setOrg({ ...org, language: event.target.value })}><option value="ru">Русский</option><option value="en">English</option><option value="de">Deutsch</option><option value="es">Español</option></select></label>
           <label className="form-group"><span className="form-label">Часовой пояс</span><select className="form-input" value={org.timezone} onChange={(event) => setOrg({ ...org, timezone: event.target.value })}><option value="Europe/Moscow">Москва (UTC+3)</option><option value="Asia/Bangkok">Таиланд (UTC+7)</option><option value="Australia/Sydney">Сидней</option><option value="Asia/Novosibirsk">Новосибирск (UTC+7)</option><option value="Asia/Vladivostok">Владивосток (UTC+10)</option></select></label>
-          <div className="settings-form-actions"><button type="submit" className="btn btn-primary" disabled={busy === 'settings'}>{busy === 'settings' ? <Loader2 size={15} className="spinning" /> : <Save size={15} />} Сохранить</button></div>
+          <div className="settings-form-actions"><button type="submit" className="btn btn-primary" disabled={busy === 'settings' || Boolean(loadErrors.settings)}>{busy === 'settings' ? <Loader2 size={15} className="spinning" /> : <Save size={15} />} Сохранить</button></div>
         </form>
       </div>
 
       <div className="card settings-section">
-        <div className="card-header"><h3 className="card-title"><Link2 size={17} /> Подключения</h3><span className="badge badge-info">{connections.zoom_accounts.length} Zoom</span></div>
+        <div className="card-header"><h3 className="card-title"><Link2 size={17} /> Подключения</h3><span className={`badge ${loadErrors.connections ? 'badge-warning' : 'badge-info'}`}>{loadErrors.connections ? 'Не загружено' : `${connections.zoom_accounts.length} Zoom`}</span></div>
         <div className="connections-stack">
           {connections.zoom_accounts.map((account) => {
             const folderLabel = account.drive_folder_id
@@ -340,7 +373,7 @@ export default function AdminSettingsPage() {
               </Fragment>
             );
           })}
-          <button type="button" className="connection-add" onClick={() => setZoomFormOpen((open) => !open)} disabled={connections.zoom_accounts.length >= 5}><Plus size={17} /> {connections.zoom_accounts.length ? 'Подключить ещё один Zoom' : 'Подключить Zoom'}<span>{connections.zoom_accounts.length}/5</span></button>
+          <button type="button" className="connection-add" onClick={() => setZoomFormOpen((open) => !open)} disabled={Boolean(loadErrors.connections) || connections.zoom_accounts.length >= 5}><Plus size={17} /> {connections.zoom_accounts.length ? 'Подключить ещё один Zoom' : 'Подключить Zoom'}<span>{connections.zoom_accounts.length}/5</span></button>
           {zoomFormOpen && (
             <form className="zoom-credentials-editor" onSubmit={connectZoomWithCredentials}>
               <div className="zoom-credentials-copy">
@@ -392,9 +425,9 @@ export default function AdminSettingsPage() {
       </div>
 
       <div className="card settings-section">
-        <div className="card-header"><h3 className="card-title"><Key size={17} /> API-ключи</h3><span className="badge badge-info">{apiKeys.filter((key) => key.is_active !== false).length}</span></div>
+        <div className="card-header"><h3 className="card-title"><Key size={17} /> API-ключи</h3><span className={`badge ${loadErrors.apiKeys ? 'badge-warning' : 'badge-info'}`}>{loadErrors.apiKeys ? 'Не загружено' : apiKeys.filter((key) => key.is_active !== false).length}</span></div>
         {createdKey && <div className="created-key"><AlertCircle size={17} /><div><strong>Скопируйте ключ сейчас — повторно он не показывается.</strong><code>{createdKey}</code></div><button className="btn btn-primary btn-sm" onClick={() => navigator.clipboard.writeText(createdKey)}><Copy size={14} /> Копировать</button></div>}
-        <div className="api-key-create"><input className="form-input" value={newKeyName} onChange={(event) => setNewKeyName(event.target.value)} placeholder="Название ключа" /><button className="btn btn-primary" onClick={createApiKey} disabled={!newKeyName.trim() || busy === 'key-create'}><Plus size={15} /> Создать</button></div>
+        <div className="api-key-create"><input className="form-input" value={newKeyName} onChange={(event) => setNewKeyName(event.target.value)} placeholder="Название ключа" disabled={Boolean(loadErrors.apiKeys)} /><button className="btn btn-primary" onClick={createApiKey} disabled={Boolean(loadErrors.apiKeys) || !newKeyName.trim() || busy === 'key-create'}><Plus size={15} /> Создать</button></div>
         <div className="api-key-list">
           {apiKeys.map((key) => <div key={key.id}><div><strong>{key.name}</strong><span><code>{key.key_prefix || key.prefix}…</code> · {key.is_active === false ? 'отозван' : 'активен'}</span></div>{key.is_active !== false && <button className="btn btn-ghost btn-sm danger" onClick={() => revokeApiKey(key)} disabled={busy === `key-${key.id}`}><Trash2 size={14} /> Отозвать</button>}</div>)}
         </div>
