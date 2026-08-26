@@ -13,9 +13,8 @@ const REQUIRED_SCOPES = [
   'user:read:list_users:admin',
   'user:read:user:admin',
   'meeting:read:meeting:admin',
+  'meeting:read:list_past_participants:admin',
 ];
-
-const PARTICIPANT_SCOPE = 'meeting:read:list_past_participants:admin';
 
 function GuideStep({ id, number, title, children }) {
   return (
@@ -42,7 +41,7 @@ export default function ZoomSetupGuidePage() {
 
   const copyScopes = async () => {
     try {
-      await navigator.clipboard.writeText([...REQUIRED_SCOPES, PARTICIPANT_SCOPE].join('\n'));
+      await navigator.clipboard.writeText(REQUIRED_SCOPES.join('\n'));
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2500);
     } catch {
@@ -65,7 +64,7 @@ export default function ZoomSetupGuidePage() {
         <div className="zoom-guide-hero-icon"><BookOpen size={28} /></div>
         <div>
           <h2>Что будет передаваться</h2>
-          <p>AxioMeet получает готовую облачную запись Zoom, сведения о встрече и, при отдельном разрешении, список участников. Стандартное подключение работает в режиме чтения и не создаёт и не удаляет встречи в Zoom.</p>
+          <p>AxioMeet получает готовую облачную запись Zoom, сведения о встрече и список участников. Стандартное подключение работает в режиме чтения и не создаёт и не удаляет встречи в Zoom.</p>
         </div>
       </div>
 
@@ -159,10 +158,9 @@ export default function ZoomSetupGuidePage() {
             <div className="zoom-guide-scopes">
               {REQUIRED_SCOPES.map((scope) => <code key={scope}>{scope}</code>)}
             </div>
-            <div className="zoom-guide-optional-scope">
-              <strong>Рекомендуется для имён и состава участников</strong>
-              <code>{PARTICIPANT_SCOPE}</code>
-              <span>Без этого разрешения запись и расшифровка загрузятся, но состав участников может быть неполным.</span>
+            <div className="zoom-guide-info">
+              <KeyRound size={18} />
+              <span><b>Последний scope для участников обязателен.</b> Без него AxioMeet не сможет надёжно получать имена и состав участников встречи.</span>
             </div>
             <div className="zoom-guide-warning compact"><AlertTriangle size={18} /><div><strong>Не заменяйте granular scopes старыми recording:read:admin, user:read:admin и dashboard:read:admin.</strong><span>Новые Server-to-Server приложения Zoom используют granular scopes.</span></div></div>
           </GuideStep>
