@@ -1977,6 +1977,16 @@ select.form-input { appearance: auto; cursor: pointer; }
 .zoom-guide-two-column > div { padding: 14px; border: 1px solid var(--border-light); border-radius: var(--radius-md); background: var(--bg-hover); }
 .zoom-guide-numbered { display: flex; flex-direction: column; gap: 8px; padding-left: 22px; margin-top: 12px; color: var(--text-secondary); }
 .zoom-guide-numbered a { display: inline-flex; align-items: center; gap: 4px; }
+.zoom-guide-copy-block { margin-top: 16px; padding: 15px; border: 1px solid #a7f3d0; border-radius: var(--radius-md); background: linear-gradient(135deg, #f0fdfa, #f8fbff); }
+.zoom-guide-copy-block h3 { margin: 0 0 10px; color: var(--success-text); font-size: var(--font-md); }
+.zoom-guide-copy-grid { display: flex; flex-direction: column; gap: 7px; }
+.zoom-guide-copy-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 11px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); background: #fff; }
+.zoom-guide-copy-row > div { min-width: 0; flex: 1; }
+.zoom-guide-copy-row > div > span { display: block; margin-bottom: 3px; color: var(--text-muted); font-size: var(--font-xs); font-weight: 650; }
+.zoom-guide-copy-row code { display: block; color: var(--primary-700); font-size: 13px; font-weight: 700; line-height: 1.45; overflow-wrap: anywhere; user-select: all; }
+.zoom-guide-copy-row .btn { flex: 0 0 auto; }
+.zoom-guide-copy-source { flex: 0 0 auto; padding: 5px 8px; border-radius: 999px; color: var(--text-muted); background: var(--bg-input); font-size: var(--font-xs); font-weight: 650; }
+.zoom-guide-copy-note { margin: 9px 0 0 !important; color: var(--text-muted) !important; font-size: var(--font-xs); line-height: 1.5; }
 .zoom-guide-info { display: flex; align-items: flex-start; gap: 9px; padding: 12px 14px; margin-top: 14px; border: 1px solid #bfdbfe; border-radius: var(--radius-md); color: var(--info-text); background: var(--info-bg); }
 .zoom-guide-info svg { flex: 0 0 auto; margin-top: 2px; }
 .zoom-guide-scope-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 15px; }
@@ -2035,4 +2045,6 @@ select.form-input { appearance: auto; cursor: pointer; }
   .zoom-guide-step-number { width: 36px; height: 36px; border-radius: 11px; }
   .zoom-guide-two-column, .zoom-guide-troubleshooting-grid { grid-template-columns: 1fr; }
   .zoom-guide-scope-head { align-items: flex-start; flex-direction: column; }
+  .zoom-guide-copy-row { align-items: flex-start; flex-direction: column; }
+  .zoom-guide-copy-row .btn { width: 100%; justify-content: center; }
 }
