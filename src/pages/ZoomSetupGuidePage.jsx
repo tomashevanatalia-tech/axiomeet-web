@@ -16,6 +16,65 @@ const REQUIRED_SCOPES = [
   'meeting:read:list_past_participants:admin',
 ];
 
+const CLOUD_RECORDING_VALUES = [
+  { label: 'Cloud Recording', value: 'ON' },
+  { label: 'Video layout', value: 'Record active speaker with shared screen' },
+  { label: 'Record audio-only files', value: 'ON' },
+  { label: 'Record a separate audio file of each participant', value: 'ON — ОБЯЗАТЕЛЬНО' },
+];
+
+const AUTOMATIC_RECORDING_VALUES = [
+  { label: 'Automatic recording', value: 'ON' },
+  { label: 'Storage', value: 'Record in the cloud' },
+  { label: 'Retention', value: '30 days or more' },
+];
+
+const SENATE_APP_VALUES = [
+  { label: 'App Type', value: 'Server-to-Server OAuth' },
+  { label: 'App Name', value: 'AxioMeet' },
+  { label: 'Company Name', value: 'Senate' },
+  { label: 'Developer Contact Name', value: 'Andrey Zaytsev' },
+  { label: 'Developer Contact Email', value: 'admin@axiomeet.com' },
+];
+
+const FOX_APP_VALUES = [
+  { label: 'App Type', value: 'Server-to-Server OAuth' },
+  { label: 'App Name', value: 'AxioMeet — FOXMetoD' },
+  { label: 'Company Name', value: 'FOXMetoD' },
+  { label: 'Developer Contact Name', value: 'Andrey Zaytsev' },
+  { label: 'Developer Contact Email', value: 'admin@axiomeet.com' },
+];
+
+const CREDENTIAL_SOURCE_VALUES = [
+  { label: 'Account ID', value: 'Zoom → App Credentials → Account ID', copyable: false },
+  { label: 'Client ID', value: 'Zoom → App Credentials → Client ID', copyable: false },
+  { label: 'Client Secret', value: 'Zoom → App Credentials → Client Secret', copyable: false },
+  { label: 'Activation status', value: 'Active' },
+];
+
+const SENATE_CONNECTION_VALUES = [
+  { label: 'Название подключения', value: 'Senate Zoom' },
+  { label: 'Account ID', value: 'вставьте Account ID из App Credentials', copyable: false },
+  { label: 'Client ID', value: 'вставьте Client ID из App Credentials', copyable: false },
+  { label: 'Client Secret', value: 'вставьте Client Secret из App Credentials', copyable: false },
+  { label: 'Папка Google Drive', value: 'Senate — Zoom recordings' },
+];
+
+const TEST_MEETING_VALUES = [
+  { label: 'Topic', value: 'AxioMeet — проверка Zoom' },
+  { label: 'Duration', value: '5 minutes' },
+  { label: 'Participants', value: '2 or more' },
+  { label: 'Expected video', value: '1 MP4' },
+  { label: 'Expected audio', value: 'separate M4A files for participants' },
+];
+
+const WEBHOOK_VALUES = [
+  { label: 'Subscription Name', value: 'AxioMeet' },
+  { label: 'Event notification endpoint URL', value: 'https://app.axiomeet.io/webhook' },
+  { label: 'Event', value: 'All Recordings have completed' },
+  { label: 'Event code', value: 'recording.completed' },
+];
+
 function GuideStep({ id, number, title, children }) {
   return (
     <section className="zoom-guide-step" id={id} aria-labelledby={`${id}-title`}>
@@ -33,6 +92,47 @@ function CheckList({ items }) {
     <ul className="zoom-guide-checklist">
       {items.map((item) => <li key={item}><CheckCircle2 size={17} /> <span>{item}</span></li>)}
     </ul>
+  );
+}
+
+function CopyValue({ label, value, copyable = true }) {
+  const [copied, setCopied] = useState(false);
+
+  const copyValue = async () => {
+    if (!copyable) return;
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2200);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  return (
+    <div className="zoom-guide-copy-row">
+      <div>
+        <span>{label}</span>
+        <code>{value}</code>
+      </div>
+      {copyable ? (
+        <button type="button" className="btn btn-secondary btn-sm" onClick={copyValue} aria-label={`Скопировать значение поля ${label}`}>
+          <Copy size={14} /> {copied ? 'Скопировано' : 'Копировать'}
+        </button>
+      ) : <span className="zoom-guide-copy-source">из вашего Zoom</span>}
+    </div>
+  );
+}
+
+function CopyValues({ title, items, note }) {
+  return (
+    <div className="zoom-guide-copy-block">
+      <h3>{title}</h3>
+      <div className="zoom-guide-copy-grid">
+        {items.map((item) => <CopyValue key={`${item.label}-${item.value}`} {...item} />)}
+      </div>
+      {note && <p className="zoom-guide-copy-note">{note}</p>}
+    </div>
   );
 }
 
@@ -107,12 +207,14 @@ export default function ZoomSetupGuidePage() {
           <GuideStep id="zoom-cloud" number="2" title="Включите Cloud Recording на уровне аккаунта">
             <div className="zoom-guide-path"><Cloud size={17} /><span><b>Account Management → Account Settings → Recording & Transcript → Cloud Recording → ON</b></span></div>
             <p>Нажмите значок замка, если настройка должна действовать для всех групп и пользователей. Серый переключатель означает, что параметр заблокирован на более высоком уровне.</p>
+            <div className="zoom-guide-path"><Radio size={17} /><span><b>Cloud Recording → Advanced cloud recording settings → Record a separate audio file of each participant → ON</b></span></div>
             <div className="zoom-guide-two-column">
               <div>
-                <h3>Рекомендуемый формат</h3>
+                <h3>Обязательные настройки</h3>
                 <ul>
                   <li>Оставьте хотя бы один видеофайл MP4.</li>
                   <li>Для базового сценария включите <b>Record active speaker with shared screen</b>.</li>
+                  <li>Обязательно включите <b>Record a separate audio file of each participant</b>.</li>
                   <li>Не запрещайте скачивание облачных записей для администратора интеграции.</li>
                 </ul>
               </div>
@@ -120,11 +222,15 @@ export default function ZoomSetupGuidePage() {
                 <h3>Не требуется</h3>
                 <ul>
                   <li>Zoom Audio Transcript — AxioMeet делает собственную расшифровку.</li>
-                  <li>Отдельный аудиофайл каждого участника.</li>
                   <li>Несколько отдельных видеоформатов, если они не нужны архиву.</li>
                 </ul>
               </div>
             </div>
+            <CopyValues
+              title="Точные значения"
+              items={CLOUD_RECORDING_VALUES}
+              note="Ищите названия на английском: так они совпадают с интерфейсом и поиском настроек Zoom."
+            />
           </GuideStep>
 
           <GuideStep id="zoom-auto" number="3" title="Включите автоматическую запись именно в облако">
@@ -136,6 +242,7 @@ export default function ZoomSetupGuidePage() {
               'На время теста отключите автоудаление. После стабильной проверки задавайте срок не короче 30 дней.',
               'Убедитесь, что облачное хранилище Zoom не заполнено.',
             ]} />
+            <CopyValues title="Точные значения" items={AUTOMATIC_RECORDING_VALUES} />
           </GuideStep>
 
           <GuideStep id="zoom-app" number="4" title="Создайте отдельное Server-to-Server OAuth приложение">
@@ -143,9 +250,19 @@ export default function ZoomSetupGuidePage() {
               <li>Откройте <a href="https://marketplace.zoom.us/" target="_blank" rel="noreferrer">Zoom App Marketplace <ExternalLink size={13} /></a> и войдите под администратором.</li>
               <li>Нажмите <b>Developer → Build App</b>.</li>
               <li>Выберите <b>Server-to-Server OAuth</b> и нажмите <b>Create</b>.</li>
-              <li>Назовите приложение, например <b>AxioMeet — Senate</b>.</li>
-              <li>Во вкладке <b>Information</b> заполните company name и контакт разработчика — без них Zoom не активирует приложение.</li>
+              <li>Введите <b>App Name</b> из готового блока ниже и нажмите <b>Create</b>.</li>
+              <li>Во вкладке <b>Information</b> вставьте готовые Company Name, Developer Contact Name и Developer Contact Email.</li>
             </ol>
+            <CopyValues
+              title="Готовые значения для Zoom-аккаунта Senate"
+              items={SENATE_APP_VALUES}
+              note="Копируйте без кавычек. Company Name, имя и email обязательны для активации приложения."
+            />
+            <CopyValues
+              title="Если FOXMetoD подключается к кабинету Senate"
+              items={FOX_APP_VALUES}
+              note="Создайте отдельное приложение в Zoom-аккаунте FOXMetoD. Client Secret приложения Senate использовать нельзя."
+            />
             <div className="zoom-guide-info"><KeyRound size={18} /><span>Создавайте отдельное приложение для каждого Zoom-аккаунта и сервиса. Так проще отозвать доступ и проверить журналы.</span></div>
           </GuideStep>
 
@@ -172,6 +289,11 @@ export default function ZoomSetupGuidePage() {
               <li>На вкладке <b>App Credentials</b> скопируйте <b>Account ID, Client ID и Client Secret</b>.</li>
               <li>После изменения scopes снова сохраните изменения и убедитесь, что приложение активно.</li>
             </ol>
+            <CopyValues
+              title="Что копировать из App Credentials"
+              items={CREDENTIAL_SOURCE_VALUES}
+              note="Секретные реквизиты не публикуются в инструкции: возьмите их в своём приложении и сразу вставьте в защищённую форму AxioMeet."
+            />
             <div className="zoom-guide-warning compact"><AlertTriangle size={18} /><div><strong>Client Secret показывается и используется как пароль.</strong><span>Если он попал в переписку или снимок экрана, сгенерируйте новый до подключения.</span></div></div>
           </GuideStep>
 
@@ -183,6 +305,16 @@ export default function ZoomSetupGuidePage() {
               <li>Выберите отдельную папку Google Drive или оставьте общую папку организации.</li>
               <li>Нажмите <b>Проверить и подключить</b>. Секрет повторно в интерфейсе не показывается.</li>
             </ol>
+            <CopyValues
+              title="Готовые значения для кабинета Senate"
+              items={SENATE_CONNECTION_VALUES}
+              note="Для FOXMetoD: название подключения «FOXMetoD Zoom — аренда Senate», папка «Senate — FOXMetoD Zoom recordings»."
+            />
+            <CopyValues
+              title="Если API-ключ Onboardix действительно отсутствует"
+              items={[{ label: 'Название ключа', value: 'Onboardix — Senate' }]}
+              note="Сначала обновите страницу и уточните у администратора. Рабочий ключ нельзя удалять или перевыпускать без согласования с Onboardix."
+            />
             <Link className="btn btn-primary zoom-guide-connect-button" to="/admin/settings?zoom_setup=1"><Video size={15} /> Открыть форму подключения</Link>
           </GuideStep>
 
@@ -190,16 +322,26 @@ export default function ZoomSetupGuidePage() {
             <CheckList items={[
               'Создайте новую встречу на 3–5 минут, включите микрофон и на минуту покажите экран.',
               'Завершите встречу для всех и дождитесь в Zoom статуса Cloud Recording: Completed.',
-              'В записи должен быть MP4 с ненулевым размером.',
+              'В записи должен быть MP4 с ненулевым размером и отдельные аудиофайлы участников.',
               'В AxioMeet нажмите «Проверить» у нужного Zoom-подключения.',
               'Если webhook не настроен, дождитесь следующего планового сканирования или запустите проверку вручную.',
               'Проверьте появление встречи, расшифровки и нужной папки Google Drive.',
             ]} />
+            <CopyValues
+              title="Параметры контрольной встречи"
+              items={TEST_MEETING_VALUES}
+              note="Оба участника должны произнести несколько фраз. Отдельные M4A — обязательный критерий прохождения теста."
+            />
           </GuideStep>
 
           <section className="zoom-guide-secondary-section">
             <div className="zoom-guide-secondary-title"><Radio size={20} /><div><h2>Webhook — только для ускорения</h2><p>Базовая передача работает через периодическую проверку Zoom.</p></div></div>
             <p>Если запись должна попадать в обработку сразу после завершения, сначала согласуйте webhook с администратором AxioMeet. Понадобятся событие <code>recording.completed</code>, проверяемый endpoint и Secret Token, который настраивается на стороне сервера. Не включайте webhook самостоятельно, если вам не выдали отдельные параметры.</p>
+            <CopyValues
+              title="Точные значения webhook"
+              items={WEBHOOK_VALUES}
+              note="Secret Token в публичной инструкции не размещается — его передаёт администратор AxioMeet по защищённому каналу."
+            />
           </section>
 
           <section className="zoom-guide-troubleshooting">
