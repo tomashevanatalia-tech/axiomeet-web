@@ -2048,3 +2048,14 @@ select.form-input { appearance: auto; cursor: pointer; }
   .zoom-guide-copy-row { align-items: flex-start; flex-direction: column; }
   .zoom-guide-copy-row .btn { width: 100%; justify-content: center; }
 }
+
+.workspace-progress { display: flex; align-items: flex-start; gap: 12px; padding: 16px 18px; margin-bottom: 20px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-card, #fff); color: var(--text-primary); }
+.workspace-progress > svg { flex: 0 0 auto; margin-top: 2px; color: var(--primary-600); }
+.workspace-progress p { margin: 5px 0; color: var(--text-secondary); line-height: 1.5; }
+.workspace-progress small { color: var(--text-muted); }
+.workspace-progress-warning { border-color: #f1c775; background: #fffbef; }
+.workspace-progress-warning > svg { color: #946200; }
+.workspace-progress-artifacts { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 9px 0; font-size: var(--font-sm); }
+.app-main { min-width: 0; }
+.workspace-progress > div { min-width: 0; overflow-wrap: anywhere; }
+.workspace-tabs { max-width: 100%; }
