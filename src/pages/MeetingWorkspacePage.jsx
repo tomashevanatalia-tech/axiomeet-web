@@ -1,8 +1,10 @@
-import { createElement, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createElement, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import api from '../api';
-import { loadWorkspaceResources, loadWorkspaceResource, RESOURCE_LABELS } from '../workspace/resources';
+import { RESOURCE_LABELS } from '../workspace/resources';
+import useMeetingWorkspace from '../hooks/useMeetingWorkspace';
+import ProcessingProgress from '../components/workspace/ProcessingProgress';
 import ResourceError from '../components/workspace/ResourceError';
 import {
   AlertCircle, AlertTriangle, ArrowLeft, Calendar, Check, Clock,
@@ -58,79 +60,18 @@ export default function MeetingWorkspacePage() {
   const { uuid } = useParams();
   const { user } = useAuth();
   const canEdit = ['owner', 'admin', 'member'].includes(user?.role);
-  const [meeting, setMeeting] = useState(null);
-  const [transcript, setTranscript] = useState(null);
-  const [versions, setVersions] = useState([]);
-  const [templates, setTemplates] = useState([]);
-  const [shareLinks, setShareLinks] = useState([]);
   const [activeTab, setActiveTab] = useState('protocol');
-  const [protocolDraft, setProtocolDraft] = useState('');
-  const [segments, setSegments] = useState([]);
-  const [speakerRenames, setSpeakerRenames] = useState({});
   const [renameFrom, setRenameFrom] = useState('');
   const [renameTo, setRenameTo] = useState('');
-  const [selectedTemplate, setSelectedTemplate] = useState('standard');
-  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState('');
-  const [error, setError] = useState('');
   const [notice, setNotice] = useState(null);
-  const [resourceErrors, setResourceErrors] = useState({});
-  const [retrying, setRetrying] = useState({});
-  const loadId = useRef(0);
-
-  const applyResource = useCallback((name, data) => {
-    if (name === 'transcript') {
-      setTranscript(data);
-      setSegments(data?.segments || []);
-    } else if (name === 'versions') setVersions(data?.versions || []);
-    else if (name === 'templates') setTemplates(data?.templates || []);
-    else if (name === 'shareLinks') setShareLinks(data?.links || []);
-  }, []);
-
-  const load = useCallback(async () => {
-    const requestId = ++loadId.current;
-    setLoading(true);
-    setError('');
-    setResourceErrors({});
-    try {
-      const detail = await api.getMeetingDetail(uuid);
-      if (requestId !== loadId.current) return;
-      setMeeting(detail);
-      setProtocolDraft(detail.protocol_md || '');
-      setSelectedTemplate(detail.protocol_template || 'standard');
-      setSpeakerRenames({});
-      const { data, errors } = await loadWorkspaceResources(api, uuid);
-      if (requestId !== loadId.current) return;
-      Object.entries(data).forEach(([name, value]) => applyResource(name, value));
-      setResourceErrors(errors);
-    } catch (err) {
-      if (requestId === loadId.current) setError(err.message || 'Не удалось загрузить встречу');
-    } finally {
-      if (requestId === loadId.current) setLoading(false);
-    }
-  }, [uuid, applyResource]);
-
-  useEffect(() => {
-    load();
-    return () => { loadId.current += 1; };
-  }, [load]);
-
-  const retryResource = async (name) => {
-    const requestId = loadId.current;
-    setRetrying((current) => ({ ...current, [name]: true }));
-    try {
-      const data = await loadWorkspaceResource(api, uuid, name);
-      if (requestId !== loadId.current) return;
-      applyResource(name, data);
-      setResourceErrors((current) => ({ ...current, [name]: null }));
-    } catch (err) {
-      if (requestId === loadId.current) {
-        setResourceErrors((current) => ({ ...current, [name]: err.message || 'Ошибка загрузки' }));
-      }
-    } finally {
-      if (requestId === loadId.current) setRetrying((current) => ({ ...current, [name]: false }));
-    }
-  };
+  const {
+    meeting, setMeeting, transcript, setTranscript, versions, setVersions,
+    templates, shareLinks, setShareLinks, protocolDraft, setProtocolDraft,
+    segments, setSegments, speakerRenames, setSpeakerRenames,
+    selectedTemplate, setSelectedTemplate, loading, error,
+    resourceErrors, setResourceErrors, retrying, retryResource, load, progressError,
+  } = useMeetingWorkspace(uuid);
 
   const resourceError = (name) => resourceErrors[name] && (
     <ResourceError label={RESOURCE_LABELS[name]} message={resourceErrors[name]}
@@ -379,6 +320,8 @@ export default function MeetingWorkspacePage() {
           <button className="btn btn-secondary" onClick={load}><RefreshCw size={15} /> Обновить</button>
         </div>
       </div>
+
+      <ProcessingProgress processing={meeting.processing} error={progressError} />
 
       {(meeting.protocol_stale || transcript?.protocol_stale) && (
         <div className="workspace-stale">
