@@ -1,7 +1,9 @@
-import { createElement, useCallback, useEffect, useMemo, useState } from 'react';
+import { createElement, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import api from '../api';
+import { loadWorkspaceResources, loadWorkspaceResource, RESOURCE_LABELS } from '../workspace/resources';
+import ResourceError from '../components/workspace/ResourceError';
 import {
   AlertCircle, AlertTriangle, ArrowLeft, Calendar, Check, Clock,
   ExternalLink, FileText, FolderOpen, History, Link2, ListTodo, Mail,
@@ -72,35 +74,68 @@ export default function MeetingWorkspacePage() {
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState(null);
+  const [resourceErrors, setResourceErrors] = useState({});
+  const [retrying, setRetrying] = useState({});
+  const loadId = useRef(0);
+
+  const applyResource = useCallback((name, data) => {
+    if (name === 'transcript') {
+      setTranscript(data);
+      setSegments(data?.segments || []);
+    } else if (name === 'versions') setVersions(data?.versions || []);
+    else if (name === 'templates') setTemplates(data?.templates || []);
+    else if (name === 'shareLinks') setShareLinks(data?.links || []);
+  }, []);
 
   const load = useCallback(async () => {
+    const requestId = ++loadId.current;
     setLoading(true);
     setError('');
+    setResourceErrors({});
     try {
       const detail = await api.getMeetingDetail(uuid);
+      if (requestId !== loadId.current) return;
       setMeeting(detail);
       setProtocolDraft(detail.protocol_md || '');
       setSelectedTemplate(detail.protocol_template || 'standard');
-
-      const [transcriptData, versionData, templateData, shareData] = await Promise.all([
-        api.getMeetingTranscript(uuid).catch(() => null),
-        api.getProtocolVersions(uuid).catch(() => ({ versions: [] })),
-        api.getProtocolTemplates().catch(() => ({ templates: [] })),
-        api.listShareLinks(uuid).catch(() => ({ links: [] })),
-      ]);
-      setTranscript(transcriptData);
-      setSegments(transcriptData?.segments || []);
-      setVersions(versionData?.versions || []);
-      setTemplates(templateData?.templates || []);
-      setShareLinks(shareData?.links || []);
+      setSpeakerRenames({});
+      const { data, errors } = await loadWorkspaceResources(api, uuid);
+      if (requestId !== loadId.current) return;
+      Object.entries(data).forEach(([name, value]) => applyResource(name, value));
+      setResourceErrors(errors);
     } catch (err) {
-      setError(err.message || 'Не удалось загрузить встречу');
+      if (requestId === loadId.current) setError(err.message || 'Не удалось загрузить встречу');
     } finally {
-      setLoading(false);
+      if (requestId === loadId.current) setLoading(false);
     }
-  }, [uuid]);
+  }, [uuid, applyResource]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+    return () => { loadId.current += 1; };
+  }, [load]);
+
+  const retryResource = async (name) => {
+    const requestId = loadId.current;
+    setRetrying((current) => ({ ...current, [name]: true }));
+    try {
+      const data = await loadWorkspaceResource(api, uuid, name);
+      if (requestId !== loadId.current) return;
+      applyResource(name, data);
+      setResourceErrors((current) => ({ ...current, [name]: null }));
+    } catch (err) {
+      if (requestId === loadId.current) {
+        setResourceErrors((current) => ({ ...current, [name]: err.message || 'Ошибка загрузки' }));
+      }
+    } finally {
+      if (requestId === loadId.current) setRetrying((current) => ({ ...current, [name]: false }));
+    }
+  };
+
+  const resourceError = (name) => resourceErrors[name] && (
+    <ResourceError label={RESOURCE_LABELS[name]} message={resourceErrors[name]}
+      retrying={retrying[name]} onRetry={() => retryResource(name)} />
+  );
 
   const speakers = useMemo(() => Array.from(new Set(
     segments.map((segment) => (segment.speaker || '').trim()).filter(Boolean)
@@ -115,6 +150,16 @@ export default function MeetingWorkspacePage() {
     window.setTimeout(() => setNotice(null), 5000);
   };
 
+  const refreshHistory = async () => {
+    try {
+      const history = await api.getProtocolVersions(uuid);
+      setVersions(history.versions || []);
+      setResourceErrors((current) => ({ ...current, versions: null }));
+    } catch (err) {
+      setResourceErrors((current) => ({ ...current, versions: err.message || 'Ошибка загрузки' }));
+    }
+  };
+
   const saveProtocol = async () => {
     if (!protocolDraft.trim()) return;
     setBusy('protocol');
@@ -125,8 +170,7 @@ export default function MeetingWorkspacePage() {
         protocol_md: result.protocol_md || protocolDraft,
         protocol_generated_at: result.protocol_generated_at,
       }));
-      const history = await api.getProtocolVersions(uuid).catch(() => ({ versions }));
-      setVersions(history.versions || versions);
+      await refreshHistory();
       showNotice(
         result.drive_synced
           ? 'Протокол сохранён в кабинете и синхронизирован с Google Drive'
@@ -167,8 +211,7 @@ export default function MeetingWorkspacePage() {
         protocol_generated_at: result.protocol_generated_at,
         protocol_stale: false,
       }));
-      const history = await api.getProtocolVersions(uuid).catch(() => ({ versions }));
-      setVersions(history.versions || versions);
+      await refreshHistory();
       showNotice('Новый протокол создан и сохранён. Предыдущая версия доступна в истории.');
     } catch (err) {
       showNotice(err.message || 'Не удалось перегенерировать протокол', 'error');
@@ -248,6 +291,7 @@ export default function MeetingWorkspacePage() {
       }
       const data = await api.listShareLinks(uuid);
       setShareLinks(data.links || []);
+      setResourceErrors((current) => ({ ...current, shareLinks: null }));
     } catch (err) {
       showNotice(err.message || 'Не удалось создать ссылку', 'error');
     } finally {
@@ -340,7 +384,7 @@ export default function MeetingWorkspacePage() {
         <div className="workspace-stale">
           <AlertTriangle size={18} />
           <div><strong>Транскрипт изменён после создания протокола.</strong><br />Проверьте правки и запустите перегенерацию вручную.</div>
-          {canEdit && <button className="btn btn-primary btn-sm" onClick={regenerateProtocol}>Обновить протокол</button>}
+          {canEdit && <button className="btn btn-primary btn-sm" onClick={regenerateProtocol} disabled={Boolean(resourceErrors.templates)}>Обновить протокол</button>}
         </div>
       )}
 
@@ -375,15 +419,16 @@ export default function MeetingWorkspacePage() {
 
           <aside className="workspace-panel workspace-sidebar-panel">
             <h3>Шаблон и действия</h3>
+            {resourceError('templates')}
             <label className="form-label">Шаблон протокола</label>
-            <select className="form-input" value={selectedTemplate} onChange={(event) => setSelectedTemplate(event.target.value)} disabled={!canEdit}>
+            <select className="form-input" value={selectedTemplate} onChange={(event) => setSelectedTemplate(event.target.value)} disabled={!canEdit || Boolean(resourceErrors.templates)}>
               {!templates.some((template) => template.id === selectedTemplate) && <option value={selectedTemplate}>{selectedTemplate}</option>}
               {templates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}
             </select>
             {canEdit && (
               <>
-                <button className="btn btn-secondary workspace-action" onClick={saveTemplate} disabled={busy === 'template'}><Save size={14} /> Сохранить шаблон</button>
-                <button className="btn btn-primary workspace-action" onClick={regenerateProtocol} disabled={busy === 'regenerate'}><RefreshCw size={14} /> {busy === 'regenerate' ? 'Создание…' : 'Перегенерировать'}</button>
+                <button className="btn btn-secondary workspace-action" onClick={saveTemplate} disabled={busy === 'template' || Boolean(resourceErrors.templates)}><Save size={14} /> Сохранить шаблон</button>
+                <button className="btn btn-primary workspace-action" onClick={regenerateProtocol} disabled={busy === 'regenerate' || Boolean(resourceErrors.templates)}><RefreshCw size={14} /> {busy === 'regenerate' ? 'Создание…' : 'Перегенерировать'}</button>
                 <button className="btn btn-secondary workspace-action" onClick={createShareLink} disabled={busy === 'share'}><Link2 size={14} /> Создать ссылку на 30 дней</button>
                 <button className="btn btn-secondary workspace-action" onClick={sendByEmail} disabled={busy === 'email'}><Mail size={14} /> Отправить по email</button>
               </>
@@ -391,7 +436,8 @@ export default function MeetingWorkspacePage() {
             <div className="workspace-side-note">
               Последнее обновление<br /><strong>{formatDate(meeting.protocol_generated_at)}</strong>
             </div>
-            {shareLinks.length > 0 && (
+            {resourceError('shareLinks')}
+            {!resourceErrors.shareLinks && shareLinks.length > 0 && (
               <div className="workspace-links">
                 <strong>Публичные ссылки</strong>
                 {shareLinks.map((link) => (
@@ -413,12 +459,12 @@ export default function MeetingWorkspacePage() {
           <div className="workspace-panel-title workspace-panel-title-wrap">
             <div><Mic size={17} /> Реплики и имена участников</div>
             {canEdit && (
-              <button className="btn btn-primary btn-sm" onClick={saveTranscript} disabled={busy === 'transcript'}>
+              <button className="btn btn-primary btn-sm" onClick={saveTranscript} disabled={busy === 'transcript' || Boolean(resourceErrors.transcript)}>
                 <Save size={14} /> {busy === 'transcript' ? 'Сохранение…' : 'Сохранить в Drive'}
               </button>
             )}
           </div>
-          {canEdit && (
+          {!resourceErrors.transcript && canEdit && (
             <div className="speaker-bulk-editor">
               <select className="form-input" value={renameFrom} onChange={(event) => setRenameFrom(event.target.value)}>
                 <option value="">Кого заменить…</option>
@@ -428,7 +474,7 @@ export default function MeetingWorkspacePage() {
               <button className="btn btn-secondary" onClick={bulkRename} disabled={!renameFrom || !renameTo.trim()}>Заменить во всей встрече</button>
             </div>
           )}
-          {segments.length === 0 ? (
+          {resourceErrors.transcript ? resourceError('transcript') : segments.length === 0 ? (
             <div className="workspace-empty">Текст транскрипта не найден. Ссылка на исходный файл доступна во вкладке «Файлы».</div>
           ) : (
             <div className="transcript-list">
@@ -503,7 +549,7 @@ export default function MeetingWorkspacePage() {
       {activeTab === 'history' && (
         <section className="workspace-panel">
           <div className="workspace-panel-title"><div><History size={17} /> Версии протокола</div></div>
-          {versions.length === 0 ? <div className="workspace-empty">История появится после первой правки или перегенерации</div> : (
+          {resourceErrors.versions ? resourceError('versions') : versions.length === 0 ? <div className="workspace-empty">История появится после первой правки или перегенерации</div> : (
             <div className="version-list">
               {versions.map((version) => (
                 <div className="version-row" key={version.id}>
