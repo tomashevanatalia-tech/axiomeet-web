@@ -58,6 +58,10 @@ function noticeClass(type) {
 
 export default function MeetingWorkspacePage() {
   const { uuid } = useParams();
+  return <MeetingWorkspace key={uuid} uuid={uuid} />;
+}
+
+function MeetingWorkspace({ uuid }) {
   const { user } = useAuth();
   const canEdit = ['owner', 'admin', 'member'].includes(user?.role);
   const [activeTab, setActiveTab] = useState('protocol');
