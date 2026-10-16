@@ -5,9 +5,11 @@
 
 // In dev the Vite proxy forwards /api and /oauth to VITE_API_URL.
 // In production builds use the full base URL from env.
-const API_BASE = import.meta.env.DEV
+import { requestJson } from './http';
+
+const API_BASE = import.meta.env?.DEV
   ? ''
-  : (import.meta.env.VITE_API_URL || 'https://app.axiomeet.io');
+  : (import.meta.env?.VITE_API_URL || 'https://app.axiomeet.io');
 
 class ApiError extends Error {
   constructor(message, status, data) {
@@ -56,7 +58,7 @@ async function request(method, path, body = null) {
     options.body = JSON.stringify(body);
   }
 
-  const response = await fetch(url, options);
+  const { response, data } = await requestJson(url, options);
 
   if (response.status === 401 && token && !path.includes('/auth/login')) {
     clearToken();
@@ -65,8 +67,6 @@ async function request(method, path, body = null) {
   }
 
   if (response.status === 204) return null;
-
-  const data = await response.json().catch(() => null);
 
   if (!response.ok) {
     throw new ApiError(
