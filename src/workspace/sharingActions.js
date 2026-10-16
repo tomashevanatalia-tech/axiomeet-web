@@ -1,7 +1,7 @@
 import api from '../api';
 
 export function createSharingActions(uuid, workspace, { setBusy, showNotice }) {
-  const { shareLinks, setShareLinks, error, setResourceErrors } = workspace;
+  const { setShareLinks, setResourceErrors } = workspace;
   const createShareLink = async () => {
     setBusy('share');
     try {

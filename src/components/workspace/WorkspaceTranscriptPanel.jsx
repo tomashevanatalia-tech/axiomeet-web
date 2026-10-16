@@ -1,7 +1,7 @@
 import { Mic, Save } from 'lucide-react';
 import { formatTimecode } from '../../workspace/formatting';
 
-export default function WorkspaceTranscriptPanel({ transcript, segments, resourceErrors, busy, renameFrom, setRenameFrom, renameTo, setRenameTo, updateSegment, bulkRename, saveTranscript, canEdit, speakers, resourceError }) {
+export default function WorkspaceTranscriptPanel({ segments, resourceErrors, busy, renameFrom, setRenameFrom, renameTo, setRenameTo, updateSegment, bulkRename, saveTranscript, canEdit, speakers, resourceError }) {
   return (
         <section className="workspace-panel">
           <div className="workspace-panel-title workspace-panel-title-wrap">

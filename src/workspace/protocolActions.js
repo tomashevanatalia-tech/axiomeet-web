@@ -1,7 +1,7 @@
 import api from '../api';
 
 export function createProtocolActions(uuid, workspace, { setBusy, showNotice, setActiveTab }) {
-  const { setMeeting, versions, setVersions, templates, protocolDraft, setProtocolDraft, selectedTemplate, error, setResourceErrors, load } = workspace;
+  const { setMeeting, setVersions, templates, protocolDraft, setProtocolDraft, selectedTemplate, setResourceErrors, load } = workspace;
   const refreshHistory = async () => {
     try {
       const history = await api.getProtocolVersions(uuid);

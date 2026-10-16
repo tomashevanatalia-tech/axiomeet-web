@@ -1,7 +1,7 @@
 import api from '../api';
 
 export function createTranscriptActions(uuid, workspace, { setBusy, showNotice, renameFrom, renameTo, setRenameFrom, setRenameTo }) {
-  const { setMeeting, transcript, setTranscript, segments, setSegments, speakerRenames, setSpeakerRenames, error } = workspace;
+  const { setMeeting, transcript, setTranscript, segments, setSegments, speakerRenames, setSpeakerRenames } = workspace;
   const updateSegment = (index, key, value) => {
     setSegments((current) => current.map((segment, segmentIndex) => (
       segmentIndex === index ? { ...segment, [key]: value } : segment
